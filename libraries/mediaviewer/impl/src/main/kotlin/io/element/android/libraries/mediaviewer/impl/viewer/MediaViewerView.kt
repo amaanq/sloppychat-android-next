@@ -132,6 +132,7 @@ fun MediaViewerView(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier,
+            reverseLayout = state.reverseLayout,
             // Pre-load previous and next pages
             beyondViewportPageCount = 1,
             key = { index -> state.listData[index].pagerKey },
