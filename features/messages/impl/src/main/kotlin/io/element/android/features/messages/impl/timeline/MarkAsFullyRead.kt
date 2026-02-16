@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 interface MarkAsFullyRead {
-    suspend operator fun invoke(roomId: RoomId, eventId: EventId, withReadReceipt: ReceiptType?): Result<Unit>
+    suspend operator fun invoke(roomId: RoomId, eventId: EventId, withReadReceipt: ReceiptType? = null): Result<Unit>
 }
 
 @ContributesBinding(SessionScope::class)
