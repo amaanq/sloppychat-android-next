@@ -38,6 +38,10 @@
     <string name="sc_space_unread_counts_mode_messages">Count unread messages</string>
     <string name="sc_space_unread_counts_mode_chats">Count unread chats</string>
     <string name="sc_space_unread_counts_mode_hide">Hide</string>
+    <string name="sc_compact_root_spaces_title">Compact root spaces</string>
+    <string name="sc_compact_root_spaces_summary">Show icon without name for root spaces</string>
+    <string name="sc_space_swipe_title">Swipe to switch spaces</string>
+    <string name="sc_space_swipe_summary">Drag the chat overview horizontally to switch spaces</string>
     <string name="sc_sync_read_receipt_and_marker_title">Keep read marker and receipt in sync</string>
     <string name="sc_sync_read_receipt_and_marker_title_short">Sync read markers</string>
     <string name="sc_sync_read_receipt_and_marker_summary">Always set your read receipt (what others see and what calculates your unread messages count) to the same message like your fully read marker (the new messages line when viewing a chat)</string>
@@ -75,12 +79,12 @@
     <string name="sc_pseudo_spaces_summary_experimental">Additional space pages (experimental)</string>
     <string name="sc_space_all_rooms_summary">You may no longer see all your chats or invites if you disable this.</string>
     <string name="sc_pseudo_space_favorites">Favorites</string>
-    <string name="sc_pseudo_space_dms">Direct chats</string>
+    <string name="sc_pseudo_space_dms">Direct Messages</string>
     <string name="sc_pseudo_space_groups">All groups</string>
     <string name="sc_pseudo_space_spaceless">Chats not added to spaces</string>
     <string name="sc_pseudo_space_spaceless_short">Space orphans</string>
     <string name="sc_pseudo_space_spaceless_groups">Group chats not added to spaces</string>
-    <string name="sc_pseudo_space_spaceless_groups_short">Groups</string>
+    <string name="sc_pseudo_space_spaceless_groups_short">Home</string>
     <string name="sc_pseudo_space_notifications">Unread notifications and mentions</string>
     <string name="sc_pseudo_space_notifications_short">Notifications</string>
     <string name="sc_pseudo_space_unread">Unread</string>

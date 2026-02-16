@@ -272,6 +272,7 @@ private fun RoomsViewList(
     if (isUpstreamSpaceList) {
         io.element.android.features.home.impl.spaces.HomeSpacesView(
             modifier = modifier.fillMaxSize(),
+            contentPadding = contentPadding,
             state = homeState.homeSpacesState,
             lazyListState = lazyListState,
             onSpaceClick = onUpstreamSpaceClick,

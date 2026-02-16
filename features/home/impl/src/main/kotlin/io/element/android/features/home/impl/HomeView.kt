@@ -355,20 +355,6 @@ private fun HomeScaffold(
                 }
             }
         },
-        floatingActionButton = {
-            if (state.displayActions && ScPrefs.SNC_FAB.value()) {
-                FloatingActionButton(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer, // SC
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer, // SC
-                    onClick = onStartChatClick,
-                ) {
-                    Icon(
-                        imageVector = CompoundIcons.Plus(),
-                        contentDescription = stringResource(id = R.string.screen_roomlist_a11y_create_message),
-                    )
-                }
-            }
-        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     )
     } // SpaceNavigationDrawer
