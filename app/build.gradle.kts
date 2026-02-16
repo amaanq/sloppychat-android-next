@@ -42,7 +42,7 @@ android {
     namespace = "io.element.android.x"
 
     defaultConfig {
-        //applicationId = BuildTimeConfig.APPLICATION_ID
+        // applicationId = BuildTimeConfig.APPLICATION_ID
         applicationId = "chat.schildi.android"
         versionCode = 1230
         versionName = "0.11.6-ex_26_7_1"
@@ -97,6 +97,57 @@ android {
             storePassword = System.getenv("ELEMENT_ANDROID_NIGHTLY_STOREPASSWORD")
                 ?: project.property("signing.element.nightly.storePassword") as? String?
         }
+        register("release") {
+            val releaseKeystoreFile = file(System.getenv("SC_RELEASE_KEYSTORE_PATH") ?: "./signature/release.keystore")
+            // Password is read from a sibling dotfile (gitignored); env var wins for CI.
+            val releasePasswordFile = file("./signature/.release-keystore-password")
+            val releasePasswordFromFile = releasePasswordFile.takeIf { it.exists() }?.readText()?.trim()
+            // Fall back to the debug keystore here so non-release Gradle invocations (sync,
+            // assembleDebug, etc.) don't fail at config time. Real Release variants are guarded
+            // separately in the buildType block below — see the assertNotDebugSigned() check there.
+            storeFile = if (releaseKeystoreFile.exists()) {
+                releaseKeystoreFile
+            } else {
+                file("./signature/debug.keystore")
+            }
+            storePassword = System.getenv("SC_RELEASE_STORE_PASSWORD")
+                ?: releasePasswordFromFile
+                ?: if (releaseKeystoreFile.exists()) {
+                    error(
+                        "Release keystore present at ${releaseKeystoreFile.path} but no password " +
+                            "(env SC_RELEASE_STORE_PASSWORD or signature/.release-keystore-password)"
+                    )
+                } else {
+                    "android"
+                }
+            keyAlias = System.getenv("SC_RELEASE_KEY_ALIAS")
+                ?: if (releaseKeystoreFile.exists()) {
+                    "schildichat-release"
+                } else {
+                    "androiddebugkey"
+                }
+            keyPassword = System.getenv("SC_RELEASE_KEY_PASSWORD")
+                ?: releasePasswordFromFile
+                ?: if (releaseKeystoreFile.exists()) {
+                    error("Release keystore present at ${releaseKeystoreFile.path} but no key password")
+                } else {
+                    "android"
+                }
+        }
+    }
+
+    // SC: refuse to ship a release-signed artifact unless we actually have the release keystore.
+    // Without this, a CI run that lost its keystore secret would silently produce a debug-signed
+    // APK that can't update over real installs.
+    val releaseKeystoreExists = file(System.getenv("SC_RELEASE_KEYSTORE_PATH") ?: "./signature/release.keystore").exists()
+    val isReleaseTaskRequested = gradle.startParameter.taskNames.any { name ->
+        name.contains("Release", ignoreCase = false) && !name.contains("UnitTest") && !name.contains("AndroidTest")
+    }
+    if (isReleaseTaskRequested && !releaseKeystoreExists) {
+        error(
+            "Release task requested (${gradle.startParameter.taskNames}) but the release keystore is missing. " +
+            "Set SC_RELEASE_KEYSTORE_PATH or place the keystore at app/signature/release.keystore."
+        )
     }
 
     val baseAppName = BuildTimeConfig.APPLICATION_NAME
@@ -123,7 +174,7 @@ android {
                 "login_redirect_scheme_upstream", // SC: we have non-_upstream it in resources to better combine build flavor+type
                 oAuthRedirectSchemeBase,
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
 
             optimization {
                 enable = true
@@ -196,7 +247,7 @@ android {
     productFlavors {
         create("gplay") {
             dimension = "store"
-            //isDefault = true
+            // isDefault = true
             buildConfigFieldStr("SHORT_FLAVOR_DESCRIPTION", "G")
             buildConfigFieldStr("FLAVOR_DESCRIPTION", "GooglePlay")
         }
