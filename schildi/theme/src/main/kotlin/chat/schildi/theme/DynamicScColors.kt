@@ -92,6 +92,9 @@ fun dynamicSemanticColors(colorScheme: ColorScheme, isLight: Boolean): SemanticC
         bgAccentSelected = colorScheme.primaryContainer,
         bgAccentSubtle = b.accent.copy(alpha = 0.2f),
 
+        // Separator
+        separatorPrimary = b.divider,
+
         // Backgrounds – critical (error)
         bgCriticalPrimary = colorScheme.error,
         bgCriticalHovered = colorScheme.error.copy(alpha = 0.85f),
@@ -110,8 +113,12 @@ fun dynamicSemanticColors(colorScheme: ColorScheme, isLight: Boolean): SemanticC
         bgBadgeAccent = colorScheme.primary,
         bgBadgeDefault = colorScheme.tertiary,
         bgBadgeInfo = colorScheme.tertiary,
+        bgBadgeCritical = colorScheme.error,
+        bgBadgePrimary = b.bg,
+        bgBadgeSecondary = b.bgFloating,
 
         // Borders
+        borderAccentPrimary = b.accent,
         borderAccentSubtle = b.accent,
         borderDisabled = b.divider,
         borderFocused = colorScheme.primary,
