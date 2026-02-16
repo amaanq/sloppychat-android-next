@@ -284,8 +284,12 @@ class MessagesPresenter(
                         localCoroutineScope.reinviteOtherUser(inviteProgress)
                     }
                 }
-                is MessagesEvent.OnUserClicked -> {
-                    roomMemberModerationState.eventSink(RoomMemberModerationEvents.ShowActionsForUser(event.user))
+                is MessagesEvent.OnUserClicked -> { // SC: insert mention when composer focused
+                    if (composerHasFocus) {
+                        composerState.eventSink(MessageComposerEvent.InsertMention(event.user.userId))
+                    } else {
+                        roomMemberModerationState.eventSink(RoomMemberModerationEvents.ShowActionsForUser(event.user))
+                    }
                 }
                 MessagesEvent.StopLiveLocationShare -> {
                     localCoroutineScope.launch {
