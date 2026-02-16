@@ -100,6 +100,7 @@ fun HomeTopBar(
     // SC end
     onToggleSearch: () -> Unit,
     onMenuActionClick: (RoomListMenuAction) -> Unit,
+    onMarkAllAsRead: () -> Unit, // SC
     onOpenSettings: () -> Unit,
     onAccountSwitch: (SessionId) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -171,6 +172,7 @@ fun HomeTopBar(
                 if (selectedNavigationItem == HomeNavigationBarItem.Chats) {
                     RoomListMenuItems(
                         onStartChatClick = onStartChatClick, // SC
+                        onMarkAllAsRead = onMarkAllAsRead, // SC
                         onToggleSearch = onToggleSearch,
                         onMenuActionClick = onMenuActionClick,
                         canReportBug = canReportBug,
@@ -198,6 +200,7 @@ fun HomeTopBar(
 @Composable
 private fun RoomListMenuItems(
     onStartChatClick: () -> Unit, // SC
+    onMarkAllAsRead: () -> Unit, // SC
     onToggleSearch: () -> Unit,
     onMenuActionClick: (RoomListMenuAction) -> Unit,
     canReportBug: Boolean,
@@ -226,7 +229,7 @@ private fun RoomListMenuItems(
             expanded = showMenu,
             onDismissRequest = { showMenu = false }
         ) {
-            ScRoomListDropdownEntriesTop(onClick = { showMenu = false }, onMenuActionClick = onMenuActionClick, onStartChatClick = onStartChatClick, onCreateSpaceClick = null)
+            ScRoomListDropdownEntriesTop(onClick = { showMenu = false }, onMenuActionClick = onMenuActionClick, onStartChatClick = onStartChatClick, onCreateSpaceClick = null, onMarkAllAsRead = onMarkAllAsRead)
             if (RoomListConfig.SHOW_INVITE_MENU_ITEM) {
                 DropdownMenuItem(
                     onClick = {
@@ -412,6 +415,7 @@ internal fun HomeTopBarSpaceFiltersSelectedPreview() = ElementPreview {
         filtersState = aRoomListFiltersState(),
         spaceFiltersState = aSelectedSpaceFiltersState(),
         onMenuActionClick = {},
+        onMarkAllAsRead = {}, // SC
     )
 }
 
@@ -434,6 +438,7 @@ internal fun HomeTopBarSpacesPreview() = ElementPreview {
         filtersState = aRoomListFiltersState(),
         spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
+        onMarkAllAsRead = {}, // SC
     )
 }
 
@@ -456,6 +461,7 @@ internal fun HomeTopBarWithIndicatorPreview() = ElementPreview {
         filtersState = aRoomListFiltersState(),
         spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
+        onMarkAllAsRead = {}, // SC
     )
 }
 
@@ -478,5 +484,6 @@ internal fun HomeTopBarMultiAccountPreview() = ElementPreview {
         filtersState = aRoomListFiltersState(),
         spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
+        onMarkAllAsRead = {}, // SC
     )
 }
