@@ -45,6 +45,7 @@ fun LocalMediaView(
         mimeType.isMimeTypeImage() -> MediaImageView(
             localMediaViewState = localMediaViewState,
             localMedia = localMedia,
+            mimeType = mimeType,
             modifier = modifier,
             forPreview = forPreview,
             onClick = onClick,
