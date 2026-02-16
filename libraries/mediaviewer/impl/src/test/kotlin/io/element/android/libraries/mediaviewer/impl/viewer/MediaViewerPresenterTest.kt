@@ -12,6 +12,7 @@ package io.element.android.libraries.mediaviewer.impl.viewer
 
 import android.net.Uri
 import app.cash.turbine.ReceiveTurbine
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import io.element.android.libraries.architecture.AsyncData
 import io.element.android.libraries.matrix.api.core.EventId
@@ -975,6 +976,7 @@ internal fun TestScope.createMediaViewerPresenter(
         ),
         room = room,
         localMediaActions = localMediaActions,
+        scPreferencesStore = PreviewScPreferencesStore,
     )
 }
 

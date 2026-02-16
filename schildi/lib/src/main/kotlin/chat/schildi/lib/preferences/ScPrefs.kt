@@ -127,6 +127,7 @@ object ScPrefs {
     val VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS = ScBoolPref("VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS", false, R.string.sc_pref_view_membership_events_in_public_rooms_title, R.string.sc_pref_view_membership_events_in_public_rooms_summary, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true, upstreamChoice = false, authorsChoice = true)
     val LEGACY_MESSAGE_RENDERING = ScBoolPref("LEGACY_MESSAGE_RENDERING", false, R.string.sc_pref_legacy_message_rendering_title, R.string.sc_pref_legacy_message_rendering_summary, authorsChoice = false, upstreamChoice = true, dependencies = SC_DANGER_ZONE.asDependencies())
     val VERBOSE_CONVERSATION_ICONS = ScBoolPref("VERBOSE_CONVERSATION_ICONS", false, R.string.sc_pref_verbose_room_title_icons_title, R.string.sc_pref_verbose_room_title_icons_summary, authorsChoice = false, upstreamChoice = true)
+    val REVERSE_CHAT_MEDIA_SWIPE = ScBoolPref("REVERSE_CHAT_MEDIA_SWIPE", true, R.string.sc_pref_reverse_chat_media_swipe_title, R.string.sc_pref_reverse_chat_media_swipe_summary, authorsChoice = true, upstreamChoice = false)
 
     // Advanced theming options - Light theme
     val BUBBLE_BG_LIGHT_OUTGOING = ScColorPref("BUBBLE_BG_LIGHT_OUTGOING", R.string.sc_pref_bubble_color_outgoing_title)
@@ -219,6 +220,8 @@ object ScPrefs {
                 VIEW_REDACTIONS,
                 VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS,
             )),
+            REVERSE_CHAT_MEDIA_SWIPE,
+            LEGACY_MESSAGE_RENDERING,
             ScPrefCategory(R.string.sc_url_previews_title, null, listOf(
                 URL_PREVIEWS,
                 URL_PREVIEWS_IN_E2EE_ROOMS,
