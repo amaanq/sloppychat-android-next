@@ -82,6 +82,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import timber.log.Timber
 
 @Inject
 class RoomListPresenter(
@@ -166,6 +169,7 @@ class RoomListPresenter(
                 }
                 is RoomListEvent.SetRoomIsFavorite -> coroutineScope.setRoomIsFavorite(event.roomId, event.isFavorite)
                 is RoomListEvent.SetRoomIsLowPriority -> coroutineScope.launch { client.getRoom(event.roomId)?.use { it.setIsLowPriority(event.isLowPriority) } } // SC
+                is RoomListEvent.MarkAllAsRead -> coroutineScope.markAllAsRead() // SC
                 is RoomListEvent.MarkAsRead -> coroutineScope.markAsRead(event.roomId)
                 is RoomListEvent.MarkAsUnread -> coroutineScope.markAsUnread(event.roomId)
                 is RoomListEvent.AcceptInvite -> {
@@ -360,6 +364,32 @@ class RoomListPresenter(
                 }
         }
     }
+
+    // SC start
+    private fun CoroutineScope.markAllAsRead() = launch {
+        val receiptType = if (sessionPreferencesStore.isSendPublicReadReceiptsEnabled().first()) {
+            ReceiptType.READ
+        } else {
+            ReceiptType.READ_PRIVATE
+        }
+        val semaphore = Semaphore(10)
+        client.getJoinedRoomIds().getOrNull()?.forEach { roomId ->
+            launch {
+                semaphore.withPermit {
+                    runCatching {
+                        notificationCleaner.clearMessagesForRoom(client.sessionId, roomId)
+                        client.getRoom(roomId)?.use { room ->
+                            room.setUnreadFlag(isUnread = false)
+                            room.markAsRead(receiptType)
+                        }
+                    }.onFailure { e ->
+                        Timber.w(e, "Failed to mark room $roomId as read")
+                    }
+                }
+            }
+        }
+    }
+    // SC end
 
     private fun CoroutineScope.markAsUnread(roomId: RoomId) = launch {
         client.getRoom(roomId)?.use { room ->
