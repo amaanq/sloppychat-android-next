@@ -42,7 +42,7 @@ android {
     namespace = "io.element.android.x"
 
     defaultConfig {
-        //applicationId = BuildTimeConfig.APPLICATION_ID
+        // applicationId = BuildTimeConfig.APPLICATION_ID
         applicationId = "chat.schildi.android"
         versionCode = 1150
         versionName = "0.11.0-ex_26_3_3"
@@ -97,6 +97,16 @@ android {
             storePassword = System.getenv("ELEMENT_ANDROID_NIGHTLY_STOREPASSWORD")
                 ?: project.property("signing.element.nightly.storePassword") as? String?
         }
+        register("release") {
+            val releaseKeystoreFile = file(System.getenv("SC_RELEASE_KEYSTORE_PATH") ?: "./signature/release.keystore")
+            storeFile = if (releaseKeystoreFile.exists()) releaseKeystoreFile else file("./signature/debug.keystore")
+            storePassword = System.getenv("SC_RELEASE_STORE_PASSWORD")
+                ?: if (releaseKeystoreFile.exists()) "rf58eByWj6OGKGXHExZV5J5ZsxYxkqlhYrBn+vbiybk=" else "android"
+            keyAlias = System.getenv("SC_RELEASE_KEY_ALIAS")
+                ?: if (releaseKeystoreFile.exists()) "schildichat-release" else "androiddebugkey"
+            keyPassword = System.getenv("SC_RELEASE_KEY_PASSWORD")
+                ?: if (releaseKeystoreFile.exists()) "rf58eByWj6OGKGXHExZV5J5ZsxYxkqlhYrBn+vbiybk=" else "android"
+        }
     }
 
     val baseAppName = BuildTimeConfig.APPLICATION_NAME
@@ -123,7 +133,7 @@ android {
                 "login_redirect_scheme_upstream", // SC: we have non-_upstream it in resources to better combine build flavor+type
                 oidcRedirectSchemeBase,
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
 
             optimization {
                 enable = true
@@ -195,7 +205,7 @@ android {
     productFlavors {
         create("gplay") {
             dimension = "store"
-            //isDefault = true
+            // isDefault = true
             buildConfigFieldStr("SHORT_FLAVOR_DESCRIPTION", "G")
             buildConfigFieldStr("FLAVOR_DESCRIPTION", "GooglePlay")
         }
