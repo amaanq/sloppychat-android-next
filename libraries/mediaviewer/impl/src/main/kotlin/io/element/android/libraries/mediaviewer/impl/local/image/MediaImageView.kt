@@ -11,11 +11,14 @@ package io.element.android.libraries.mediaviewer.impl.local.image
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import coil3.compose.AsyncImage
+import io.element.android.libraries.core.mimetype.MimeTypes.isMimeTypeAnimatedImage
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.utils.CommonDrawables
@@ -25,6 +28,7 @@ import io.element.android.libraries.mediaviewer.impl.local.rememberLocalMediaVie
 import io.element.android.libraries.ui.strings.CommonStrings
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
+import me.saket.telephoto.zoomable.zoomable
 
 @Composable
 fun MediaImageView(
@@ -32,12 +36,32 @@ fun MediaImageView(
     localMedia: LocalMedia?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    mimeType: String? = null, // SC
 ) {
     if (LocalInspectionMode.current) {
         Image(
             painter = painterResource(id = CommonDrawables.sample_background),
             modifier = modifier,
             contentDescription = null,
+        )
+    } else if (mimeType.isMimeTypeAnimatedImage()) { // SC: use AsyncImage for animated images (GIF/WebP)
+        // Reset isReady whenever the model or mime changes, so a recycled pager state
+        // doesn't carry the previous page's "ready" flag through a swap or error.
+        LaunchedEffect(localMedia?.uri, mimeType) {
+            localMediaViewState.isReady = false
+        }
+        AsyncImage(
+            modifier = modifier
+                .zoomable(
+                    state = localMediaViewState.zoomableState,
+                    onClick = { onClick() }
+                ),
+            model = localMedia?.uri,
+            contentDescription = stringResource(id = CommonStrings.common_image),
+            contentScale = ContentScale.Fit,
+            onSuccess = { localMediaViewState.isReady = true },
+            onError = { localMediaViewState.isReady = false },
+            onLoading = { localMediaViewState.isReady = false },
         )
     } else {
         val zoomableImageState = rememberZoomableImageState(localMediaViewState.zoomableState)
