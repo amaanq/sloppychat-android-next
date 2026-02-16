@@ -91,6 +91,7 @@ import io.element.android.features.messages.impl.timeline.model.event.TimelineIt
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemEventContentProvider
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemProfileChangeContent
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemRoomMembershipContent
+import io.element.android.features.messages.impl.timeline.model.event.TimelineItemStateEventContent // SC
 import io.element.android.features.messages.impl.timeline.protection.TimelineProtectionState
 import io.element.android.features.messages.impl.timeline.protection.aTimelineProtectionState
 import io.element.android.libraries.androidutils.system.copyToClipboard
@@ -168,10 +169,11 @@ fun TimelineView(
     val context = LocalContext.current
     val toastMessage = stringResource(CommonStrings.common_copied_to_clipboard)
     val view = LocalView.current
-    // SC: Hide membership events
+    // SC: Hide membership events and state events
     val hideMembershipEvents = ScPrefs.HIDE_MEMBERSHIP_EVENTS.value()
-    val timelineItems = remember(state.timelineItems, hideMembershipEvents) {
-        if (!hideMembershipEvents) {
+    val viewHiddenEvents = ScPrefs.VIEW_HIDDEN_EVENTS.value() // SC
+    val timelineItems = remember(state.timelineItems, hideMembershipEvents, viewHiddenEvents) {
+        if (!hideMembershipEvents && viewHiddenEvents) {
             state.timelineItems // No filtering needed
         } else {
             state.timelineItems.mapNotNull { item ->
@@ -179,12 +181,14 @@ fun TimelineView(
                     is TimelineItem.Event -> {
                         val shouldHide = // SC
                             (hideMembershipEvents && (item.content is TimelineItemRoomMembershipContent || item.content is TimelineItemProfileChangeContent))
+                            || (!viewHiddenEvents && item.content is TimelineItemStateEventContent) // SC
                         if (shouldHide) null else item
                     }
                     is TimelineItem.GroupedEvents -> {
                         val filtered = item.events.filter { event ->
                             val shouldHide = // SC
                                 (hideMembershipEvents && (event.content is TimelineItemRoomMembershipContent || event.content is TimelineItemProfileChangeContent))
+                                || (!viewHiddenEvents && event.content is TimelineItemStateEventContent) // SC
                             !shouldHide
                         }
                         when {
