@@ -14,15 +14,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.features.messages.impl.R
 import io.element.android.libraries.designsystem.components.avatar.Avatar
@@ -38,8 +41,10 @@ import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
+import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 import io.element.android.libraries.slashcommands.api.SlashCommandSuggestion
 import io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion
@@ -66,6 +71,7 @@ fun SuggestionsPickerView(
                     is ResolvedSuggestion.Member -> suggestion.roomMember.userId.value
                     is ResolvedSuggestion.Alias -> suggestion.roomId.value
                     is ResolvedSuggestion.Command -> suggestion.command.command
+                    is ResolvedSuggestion.CustomEmoji -> "emoji_${suggestion.mxcUrl}"
                 }
             }
         ) {
@@ -98,79 +104,121 @@ private fun SuggestionItemView(
             .clickable { onSelectSuggestion(suggestion) }
             .padding(horizontal = 16.dp),
     ) {
-        val avatarSize = AvatarSize.Suggestion
-        val avatarData = when (suggestion) {
-            is ResolvedSuggestion.AtRoom -> roomAvatar?.copy(size = avatarSize) ?: AvatarData(roomId, roomName, null, avatarSize)
-            is ResolvedSuggestion.Member -> suggestion.roomMember.getAvatarData(avatarSize)
-            is ResolvedSuggestion.Alias -> suggestion.getAvatarData(avatarSize)
-            is ResolvedSuggestion.Command -> null
-        }
-        val avatarType = when (suggestion) {
-            is ResolvedSuggestion.Alias -> Room()
-            ResolvedSuggestion.AtRoom,
-            is ResolvedSuggestion.Member -> AvatarType.User
-            is ResolvedSuggestion.Command -> null
-        }
-        val title = when (suggestion) {
-            is ResolvedSuggestion.AtRoom -> stringResource(R.string.screen_room_mentions_at_room_title)
-            is ResolvedSuggestion.Member -> suggestion.roomMember.displayName
-            is ResolvedSuggestion.Alias -> suggestion.roomName
-            is ResolvedSuggestion.Command -> suggestion.command.command
-        }
-        val details = when (suggestion) {
-            is ResolvedSuggestion.AtRoom,
-            is ResolvedSuggestion.Member,
-            is ResolvedSuggestion.Alias -> null
-            is ResolvedSuggestion.Command -> suggestion.command.parameters
-        }
-        val subtitle = when (suggestion) {
-            is ResolvedSuggestion.AtRoom -> "@room"
-            is ResolvedSuggestion.Member -> suggestion.roomMember.userId.value
-            is ResolvedSuggestion.Alias -> suggestion.roomAlias.value
-            is ResolvedSuggestion.Command -> suggestion.command.description
-        }
-        if (avatarData != null && avatarType != null) {
-            Avatar(
-                avatarData = avatarData,
-                avatarType = avatarType,
-                modifier = Modifier.padding(top = 12.dp, bottom = 12.dp, end = 16.dp),
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp)
-                .align(Alignment.CenterVertically),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                title?.let {
+        when (suggestion) {
+            is ResolvedSuggestion.CustomEmoji -> {
+                // SC: Custom emoji suggestion row
+                AsyncImage(
+                    model = MediaRequestData(MediaSource(suggestion.mxcUrl), MediaRequestData.Kind.Content),
+                    contentDescription = suggestion.displayName ?: ":${suggestion.shortcode}:",
+                    modifier = Modifier
+                        .size(AvatarSize.Suggestion.dp)
+                        .padding(start = 16.dp, top = 12.dp, bottom = 12.dp),
+                    contentScale = ContentScale.Fit,
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 16.dp, top = 8.dp, bottom = 8.dp)
+                        .align(Alignment.CenterVertically),
+                ) {
                     Text(
-                        text = it,
+                        text = ":${suggestion.shortcode}:",
                         style = ElementTheme.typography.fontBodyLgRegular,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    suggestion.displayName?.let { name ->
+                        Text(
+                            text = name,
+                            style = ElementTheme.typography.fontBodySmRegular,
+                            color = ElementTheme.colors.textSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
-                details?.let {
+            }
+            else -> {
+                val avatarSize = AvatarSize.Suggestion
+                val avatarData = when (suggestion) {
+                    is ResolvedSuggestion.AtRoom -> roomAvatar?.copy(size = avatarSize) ?: AvatarData(roomId, roomName, null, avatarSize)
+                    is ResolvedSuggestion.Member -> suggestion.roomMember.getAvatarData(avatarSize)
+                    is ResolvedSuggestion.Alias -> suggestion.getAvatarData(avatarSize)
+                    is ResolvedSuggestion.Command -> null
+                    is ResolvedSuggestion.CustomEmoji -> error("Handled above")
+                }
+                val avatarType = when (suggestion) {
+                    is ResolvedSuggestion.Alias -> Room()
+                    ResolvedSuggestion.AtRoom,
+                    is ResolvedSuggestion.Member -> AvatarType.User
+                    is ResolvedSuggestion.Command -> null
+                    is ResolvedSuggestion.CustomEmoji -> error("Handled above")
+                }
+                val title = when (suggestion) {
+                    is ResolvedSuggestion.AtRoom -> stringResource(R.string.screen_room_mentions_at_room_title)
+                    is ResolvedSuggestion.Member -> suggestion.roomMember.displayName
+                    is ResolvedSuggestion.Alias -> suggestion.roomName
+                    is ResolvedSuggestion.Command -> suggestion.command.command
+                    is ResolvedSuggestion.CustomEmoji -> error("Handled above")
+                }
+                val details = when (suggestion) {
+                    is ResolvedSuggestion.AtRoom,
+                    is ResolvedSuggestion.Member,
+                    is ResolvedSuggestion.Alias -> null
+                    is ResolvedSuggestion.Command -> suggestion.command.parameters
+                    is ResolvedSuggestion.CustomEmoji -> error("Handled above")
+                }
+                val subtitle = when (suggestion) {
+                    is ResolvedSuggestion.AtRoom -> "@room"
+                    is ResolvedSuggestion.Member -> suggestion.roomMember.userId.value
+                    is ResolvedSuggestion.Alias -> suggestion.roomAlias.value
+                    is ResolvedSuggestion.Command -> suggestion.command.description
+                    is ResolvedSuggestion.CustomEmoji -> error("Handled above")
+                }
+                if (avatarData != null && avatarType != null) {
+                    Avatar(
+                        avatarData = avatarData,
+                        avatarType = avatarType,
+                        modifier = Modifier.padding(top = 12.dp, bottom = 12.dp, end = 16.dp),
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 8.dp)
+                        .align(Alignment.CenterVertically),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        title?.let {
+                            Text(
+                                text = it,
+                                style = ElementTheme.typography.fontBodyLgRegular,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        details?.let {
+                            Text(
+                                text = it,
+                                style = ElementTheme.typography.fontBodyMdRegular,
+                                maxLines = 1,
+                                color = ElementTheme.colors.textSecondary,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                     Text(
-                        text = it,
-                        style = ElementTheme.typography.fontBodyMdRegular,
-                        maxLines = 1,
+                        text = subtitle,
+                        style = ElementTheme.typography.fontBodySmRegular,
                         color = ElementTheme.colors.textSecondary,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
-            Text(
-                text = subtitle,
-                style = ElementTheme.typography.fontBodySmRegular,
-                color = ElementTheme.colors.textSecondary,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
     }
 }
