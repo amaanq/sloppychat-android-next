@@ -37,4 +37,11 @@ sealed interface ResolvedSuggestion {
     data class Command(
         val command: SlashCommandSuggestion,
     ) : ResolvedSuggestion
+
+    // SC: Custom emoji from image packs (MSC2545)
+    data class CustomEmoji(
+        val shortcode: String,
+        val mxcUrl: String,
+        val displayName: String?,
+    ) : ResolvedSuggestion
 }

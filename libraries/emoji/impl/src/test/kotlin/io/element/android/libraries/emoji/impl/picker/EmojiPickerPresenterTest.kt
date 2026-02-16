@@ -10,6 +10,9 @@ package io.element.android.libraries.emoji.impl.picker
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import app.cash.turbine.TurbineTestContext
+import chat.schildi.imagepacks.ImagePackRepository
+import chat.schildi.imagepacks.ImagePackService
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import io.element.android.emojibasebindings.Emoji
 import io.element.android.emojibasebindings.EmojibaseCategory
@@ -17,6 +20,7 @@ import io.element.android.libraries.designsystem.theme.components.SearchBarResul
 import io.element.android.libraries.emoji.api.picker.EmojiPickerState
 import io.element.android.libraries.emoji.api.recentemojis.GetRecentEmojis
 import io.element.android.libraries.emoji.impl.fixtures.FakeEmojibaseProvider
+import io.element.android.libraries.matrix.test.FakeMatrixClient
 import io.element.android.tests.testutils.WarmUpRule
 import io.element.android.tests.testutils.robolectric.RobolectricTest
 import io.element.android.tests.testutils.test
@@ -100,6 +104,9 @@ class EmojiPickerPresenterTest : RobolectricTest() {
     ) = DefaultEmojiPickerPresenter(
         emojibaseProvider = FakeEmojibaseProvider(emojis = categories.toMap()),
         getRecentEmojis = getRecentEmojis,
+        room = null,
+        imagePackService = ImagePackService(ImagePackRepository(FakeMatrixClient())),
+        scPreferencesStore = PreviewScPreferencesStore,
         coroutineDispatchers = testCoroutineDispatchers(),
     )
 

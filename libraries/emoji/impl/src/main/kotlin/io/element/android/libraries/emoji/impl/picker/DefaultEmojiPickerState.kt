@@ -23,6 +23,8 @@ internal data class DefaultEmojiPickerState(
     val searchQuery: TextFieldState,
     val isSearchActive: Boolean,
     val searchResults: SearchBarResultState<ImmutableList<Emoji>>,
+    val customEmojiPacks: ImmutableList<CustomEmojiCategory>, // SC
+    val customEmojiSearchResults: ImmutableList<CustomEmoji>, // SC
     val eventSink: (EmojiPickerEvent) -> Unit,
 ) : EmojiPickerState {
     override val isReady = categories.isNotEmpty()
@@ -32,4 +34,24 @@ internal data class EmojiCategory(
     @StringRes val titleId: Int,
     val icon: IconSource,
     val emojis: ImmutableList<Emoji>,
+)
+
+/**
+ * SC: a custom emoji pack sourced from an `im.ponies` image pack.
+ */
+@Immutable
+internal data class CustomEmojiCategory(
+    val packName: String,
+    val avatarUrl: String?,
+    val emojis: ImmutableList<CustomEmoji>,
+)
+
+/**
+ * SC: a single custom emoji from an image pack.
+ */
+@Immutable
+internal data class CustomEmoji(
+    val shortcode: String,
+    val url: String,
+    val body: String?,
 )

@@ -21,10 +21,11 @@ fun a11yReactionAction(
     emoji: String,
     userAlreadyReacted: Boolean,
 ): String {
+    val spoken = if (emoji.startsWith("mxc://")) stringResource(CommonStrings.common_an_image) else emoji
     return if (userAlreadyReacted) {
-        stringResource(id = CommonStrings.a11y_remove_reaction_with, emoji)
+        stringResource(id = CommonStrings.a11y_remove_reaction_with, spoken)
     } else {
-        stringResource(id = CommonStrings.a11y_react_with, emoji)
+        stringResource(id = CommonStrings.a11y_react_with, spoken)
     }
 }
 
