@@ -28,6 +28,7 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.PinUnpinAction
+import chat.schildi.imagepacks.ImagePackService
 import io.element.android.appconfig.MessageComposerConfig
 import io.element.android.features.location.api.live.ActiveLiveLocationShareManager
 import io.element.android.features.location.api.live.isCurrentlySharing
@@ -36,6 +37,7 @@ import io.element.android.features.messages.impl.MessagesState.Threads
 import io.element.android.features.messages.impl.actionlist.ActionListState
 import io.element.android.features.messages.impl.actionlist.model.TimelineItemAction
 import io.element.android.features.messages.impl.crypto.identity.IdentityChangeState
+import io.element.android.features.messages.impl.sticker.StickerPickerPresenter
 import io.element.android.features.messages.impl.link.LinkState
 import io.element.android.features.messages.impl.messagecomposer.MessageComposerEvent
 import io.element.android.features.messages.impl.messagecomposer.MessageComposerState
@@ -137,6 +139,7 @@ class MessagesPresenter(
     private val sessionPreferencesStore: SessionPreferencesStore, // SC
     private val scPreferencesStore: ScPreferencesStore, // SC
     private val liveLocationShareManager: ActiveLiveLocationShareManager,
+    private val imagePackService: ImagePackService, // SC
     @SessionCoroutineScope private val sessionCoroutineScope: CoroutineScope,
 ) : Presenter<MessagesState> {
     @AssistedFactory
@@ -195,6 +198,18 @@ class MessagesPresenter(
         val heroes by remember {
             derivedStateOf { roomInfo.heroes().toImmutableList() }
         }
+
+        // SC: Sticker picker state — always compose so coroutine scope survives dismissal
+        var showStickerPicker by remember { mutableStateOf(false) }
+        val stickerPickerPresenter = remember {
+            StickerPickerPresenter(
+                room = room,
+                imagePackService = imagePackService,
+                snackbarDispatcher = snackbarDispatcher,
+                sessionCoroutineScope = sessionCoroutineScope,
+            )
+        }
+        val stickerPickerState = stickerPickerPresenter.present()
 
         var hasDismissedInviteDialog by rememberSaveable {
             mutableStateOf(false)
@@ -284,6 +299,12 @@ class MessagesPresenter(
                 MessagesEvent.ShowLiveLocationShare -> {
                     navigator.navigateToCurrentLiveLocation()
                 }
+                is MessagesEvent.ShowStickerPicker -> { // SC
+                    showStickerPicker = true
+                }
+                is MessagesEvent.DismissStickerPicker -> { // SC
+                    showStickerPicker = false
+                }
                 is MessagesEvent.MarkAsFullyReadAndExit -> if (!markingAsReadAndExiting.getAndSet(true)) {
                     coroutineScope.launch {
                         val syncMarkers = scPreferencesStore.getSetting(ScPrefs.SYNC_READ_RECEIPT_AND_MARKER)
@@ -351,6 +372,8 @@ class MessagesPresenter(
             isRoomEncrypted = roomInfo.isEncrypted, // SC
             bridgeState = roomInfo.bridgeState.toImmutableList(), // SC
             dmUserStatus = roomInfo.dmUserStatus(),
+            showStickerPicker = showStickerPicker, // SC
+            stickerPickerState = stickerPickerState, // SC
             roomMemberModerationState = roomMemberModerationState,
             topBarSharedHistoryIcon = topBarSharedHistoryIcon,
             successorRoom = roomInfo.successorRoom,

@@ -29,7 +29,7 @@ class UserStatusPresenter(
     private val matrixClient: MatrixClient,
     emojiPickerPresenterFactory: EmojiPickerPresenter.Factory,
 ) : Presenter<UserStatusState> {
-    private val emojiPickerPresenter = emojiPickerPresenterFactory.create(EmptyGetRecentEmojis)
+    private val emojiPickerPresenter = emojiPickerPresenterFactory.create(EmptyGetRecentEmojis, room = null)
 
     @Composable
     override fun present(): UserStatusState {

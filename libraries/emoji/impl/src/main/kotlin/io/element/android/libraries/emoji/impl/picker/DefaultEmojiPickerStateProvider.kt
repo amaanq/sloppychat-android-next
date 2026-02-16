@@ -14,6 +14,7 @@ import io.element.android.emojibasebindings.Emoji
 import io.element.android.emojibasebindings.EmojibaseCategory
 import io.element.android.libraries.designsystem.theme.components.IconSource
 import io.element.android.libraries.designsystem.theme.components.SearchBarResultState
+import io.element.android.libraries.emoji.api.picker.CustomEmoji
 import io.element.android.libraries.emoji.api.picker.EmojiPickerState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -63,12 +64,16 @@ internal fun aDefaultEmojiPickerState(
     searchQuery: String = "",
     isSearchActive: Boolean = false,
     searchResults: SearchBarResultState<ImmutableList<Emoji>> = SearchBarResultState.Initial,
+    customEmojiPacks: ImmutableList<CustomEmojiCategory> = persistentListOf(), // SC
+    customEmojiSearchResults: ImmutableList<CustomEmoji> = persistentListOf(), // SC
     eventSink: (EmojiPickerEvent) -> Unit = {},
 ) = DefaultEmojiPickerState(
     categories = categories,
     searchQuery = TextFieldState(initialText = searchQuery),
     isSearchActive = isSearchActive,
     searchResults = searchResults,
+    customEmojiPacks = customEmojiPacks, // SC
+    customEmojiSearchResults = customEmojiSearchResults, // SC
     eventSink = eventSink,
 )
 
