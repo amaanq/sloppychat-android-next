@@ -16,7 +16,7 @@ data class TimelineItemStickerContent(
     override val fileSize: Long?,
     override val caption: String?,
     override val formattedCaption: CharSequence?,
-    override val formattedCaptionSc: MatrixBodyParseResult?,
+    override val formattedCaptionSc: MatrixBodyParseResult? = null,
     override val isEdited: Boolean,
     override val mediaSource: MediaSource,
     val thumbnailSource: MediaSource?,

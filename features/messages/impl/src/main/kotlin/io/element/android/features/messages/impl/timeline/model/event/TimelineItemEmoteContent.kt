@@ -16,7 +16,7 @@ data class TimelineItemEmoteContent(
     override val body: String,
     override val htmlDocument: Document?,
     override val formattedBody: CharSequence,
-    override val formattedBodySc: MatrixBodyParseResult,
+    override val formattedBodySc: MatrixBodyParseResult = MatrixBodyParseResult(body),
     override val isEdited: Boolean,
 ) : TimelineItemTextBasedContent {
     override val type: String = "TimelineItemEmoteContent"
