@@ -24,6 +24,7 @@ data class MediaViewerState(
     val initiallySelectedEventId: EventId?,
     val listData: ImmutableList<MediaViewerPageData>,
     val currentIndex: Int,
+    val reverseLayout: Boolean,
     val snackbarMessage: SnackbarMessage?,
     val canShowInfo: Boolean,
     val mediaBottomSheetState: MediaBottomSheetState,

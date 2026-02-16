@@ -20,6 +20,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.settingState
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -54,6 +57,7 @@ class MediaViewerPresenter(
     @Assisted private val dataSource: MediaViewerDataSource,
     private val room: JoinedRoom,
     private val localMediaActions: LocalMediaActions,
+    private val scPreferencesStore: ScPreferencesStore,
 ) : Presenter<MediaViewerState> {
     @AssistedFactory
     fun interface Factory {
@@ -194,10 +198,20 @@ class MediaViewerPresenter(
             }
         }
 
+        // SC: Reverse swipe direction for chat timeline media viewer
+        val timelineMode = (inputs as? MediaViewerEntryPoint.Params.RoomMedia)?.mode?.getTimelineMode()
+        val reverseLayout = scPreferencesStore.settingState(ScPrefs.REVERSE_CHAT_MEDIA_SWIPE).value && when (timelineMode) {
+            Timeline.Mode.Live,
+            is Timeline.Mode.FocusedOnEvent,
+            is Timeline.Mode.Thread -> true
+            else -> false
+        }
+
         return MediaViewerState(
             initiallySelectedEventId = eventId,
             listData = data.value,
             currentIndex = currentIndex.intValue,
+            reverseLayout = reverseLayout,
             snackbarMessage = snackbarMessage,
             canShowInfo = inputs !is MediaViewerEntryPoint.Params.Avatar,
             mediaBottomSheetState = mediaBottomSheetState,
