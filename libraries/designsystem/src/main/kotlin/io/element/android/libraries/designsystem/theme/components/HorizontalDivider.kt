@@ -27,6 +27,7 @@ fun HorizontalDivider(
     thickness: Dp = ElementDividerDefaults.thickness,
     color: Color = ElementDividerDefaults.color,
 ) {
+    if (thickness <= 0.dp) return
     androidx.compose.material3.HorizontalDivider(
         modifier = modifier,
         thickness = thickness,

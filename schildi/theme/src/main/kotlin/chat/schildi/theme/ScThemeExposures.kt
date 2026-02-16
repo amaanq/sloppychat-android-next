@@ -32,6 +32,7 @@ class ScThemeExposures(
     mentionFgLegacy: Color?,
     mentionBgLegacy: Color?,
     mentionBgOtherLegacy: Color?,
+    mentionFgOtherLegacy: Color? = null,
     mentionFg: Color,
     mentionBg: Color,
     mentionFgHighlight: Color,
@@ -76,6 +77,8 @@ class ScThemeExposures(
         private set
     var mentionBgOtherLegacy by mutableStateOf(mentionBgOtherLegacy)
         private set
+    var mentionFgOtherLegacy by mutableStateOf(mentionFgOtherLegacy)
+        private set
     var mentionFg by mutableStateOf(mentionFg)
         private set
     var mentionBg by mutableStateOf(mentionBg)
@@ -116,6 +119,7 @@ class ScThemeExposures(
         mentionFgLegacy: Color? = this.mentionFgLegacy,
         mentionBgLegacy: Color? = this.mentionBgLegacy,
         mentionBgOtherLegacy: Color? = this.mentionBgOtherLegacy,
+        mentionFgOtherLegacy: Color? = this.mentionFgOtherLegacy,
         mentionFg: Color = this.mentionFg,
         mentionBg: Color = this.mentionBg,
         mentionFgHighlight: Color = this.mentionFgHighlight,
@@ -144,6 +148,7 @@ class ScThemeExposures(
         mentionFgLegacy = mentionFgLegacy,
         mentionBgLegacy = mentionBgLegacy,
         mentionBgOtherLegacy = mentionBgOtherLegacy,
+        mentionFgOtherLegacy = mentionFgOtherLegacy,
         mentionFg = mentionFg,
         mentionBg = mentionBg,
         mentionFgHighlight = mentionFgHighlight,
@@ -174,6 +179,7 @@ class ScThemeExposures(
         mentionFgLegacy = other.mentionFgLegacy
         mentionBgLegacy = other.mentionBgLegacy
         mentionBgOtherLegacy = other.mentionBgOtherLegacy
+        mentionFgOtherLegacy = other.mentionFgOtherLegacy
         mentionFg = other.mentionFg
         mentionBg = other.mentionBg
         mentionFgHighlight = other.mentionFgHighlight

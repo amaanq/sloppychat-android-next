@@ -84,7 +84,7 @@ class MentionSpanTheme(val currentUserId: UserId) {
     fun updateStyles() {
         currentUserTextColor = ScTheme.exposures.mentionFgLegacy?.toArgb() ?: ElementTheme.colors.textBadgeAccent.toArgb()
         currentUserBackgroundColor = ScTheme.exposures.mentionBgLegacy?.toArgb() ?: ElementTheme.colors.bgBadgeAccent.toArgb()
-        otherTextColor = ElementTheme.colors.textOnSolidPrimary.toArgb()
+        otherTextColor = ScTheme.exposures.mentionFgOtherLegacy?.toArgb() ?: ElementTheme.colors.textOnSolidPrimary.toArgb()
         otherBackgroundColor = ScTheme.exposures.mentionBgOtherLegacy?.toArgb() ?: ElementTheme.colors.bgBadgePrimary.toArgb()
 
         typeface.value = ElementTheme.typography.fontBodyLgMedium.rememberTypeface().value
