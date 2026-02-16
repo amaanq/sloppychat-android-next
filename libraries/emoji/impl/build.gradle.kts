@@ -30,8 +30,11 @@ dependencies {
     implementation(projects.libraries.designsystem)
     implementation(projects.libraries.di)
     implementation(projects.libraries.matrix.api)
+    implementation(projects.libraries.matrixmedia.api)
     implementation(projects.libraries.uiStrings)
+    implementation(projects.schildi.imagepacks)
 
+    implementation(libs.coil.compose)
     implementation(libs.kotlinx.collections.immutable)
     implementation(libs.matrix.emojibase.bindings)
 

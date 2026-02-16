@@ -16,4 +16,4 @@ fun fakeEmojiPickerPresenter(
 
 fun fakeEmojiPickerPresenterFactory(
     presenter: EmojiPickerPresenter = fakeEmojiPickerPresenter(),
-): EmojiPickerPresenter.Factory = EmojiPickerPresenter.Factory { presenter }
+): EmojiPickerPresenter.Factory = EmojiPickerPresenter.Factory { _, _ -> presenter }

@@ -31,6 +31,7 @@ import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.Composer
 import im.vector.app.features.analytics.plan.Interaction
+import chat.schildi.lib.session.ScCustomEmojiDraftStore
 import io.element.android.features.contentscanner.api.ContentScannerService
 import io.element.android.features.location.api.LocationService
 import io.element.android.features.messages.impl.MessagesNavigator
@@ -142,6 +143,7 @@ class MessageComposerPresenter(
     private val featureFlagService: FeatureFlagService,
     private val contentScannerService: ContentScannerService,
     private val contentValidationCache: EventContentValidationCache,
+    private val customEmojiDraftStore: ScCustomEmojiDraftStore, // SC
 ) : Presenter<MessageComposerState> {
     @AssistedFactory
     interface Factory {
@@ -166,6 +168,12 @@ class MessageComposerPresenter(
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal var showTextFormatting: Boolean by mutableStateOf(false)
 
+    // SC: Per-room shortcode → MXC URL mapping for send-time HTML replacement.
+    // Backed by [ScCustomEmojiDraftStore]; survives presenter recreation
+    // (rotation, navigation away+back) AND process death (write-through to DataStore).
+    private val draftRoomKey: String
+        get() = room.roomId.value
+
     @SuppressLint("UnsafeOptInUsageError")
     @Composable
     override fun present(): MessageComposerState {
@@ -188,6 +196,12 @@ class MessageComposerPresenter(
 
         val isSendGalleryMessagesEnabled by featureFlagService.isFeatureEnabledFlow(FeatureFlags.SendGalleryMessages)
             .collectAsState(initial = false)
+
+        // SC: trigger custom-emoji draft hydration so persisted shortcode → MXC mappings
+        // are loaded ahead of any user interaction. The send path also awaits this for safety.
+        LaunchedEffect(draftRoomKey) {
+            customEmojiDraftStore.awaitHydration(draftRoomKey)
+        }
 
         val galleryMediaPicker = mediaPickerProvider.registerGalleryPicker { uri, mimeType ->
             handlePickedMedia(uri, mimeType)
@@ -383,8 +397,19 @@ class MessageComposerPresenter(
                                 is ResolvedSuggestion.Command -> {
                                     richTextEditorState.replaceSuggestion(suggestion.command.command)
                                 }
+                                is ResolvedSuggestion.CustomEmoji -> {
+                                    // SC: Store shortcode → MXC URL mapping for send-time HTML replacement,
+                                    // and insert :shortcode: into the editor so the user sees it
+                                    customEmojiDraftStore.put(draftRoomKey, suggestion.shortcode, suggestion.mxcUrl)
+                                    richTextEditorState.replaceSuggestion(":${suggestion.shortcode}:")
+                                }
                             }
                         } else if (markdownTextEditorState.currentSuggestion != null) {
+                            // SC: Store shortcode → MXC URL mapping for custom emoji
+                            if (event.resolvedSuggestion is ResolvedSuggestion.CustomEmoji) {
+                                val emoji = event.resolvedSuggestion as ResolvedSuggestion.CustomEmoji
+                                customEmojiDraftStore.put(draftRoomKey, emoji.shortcode, emoji.mxcUrl)
+                            }
                             markdownTextEditorState.insertSuggestion(
                                 resolvedSuggestion = event.resolvedSuggestion,
                                 mentionSpanProvider = mentionSpanProvider,
@@ -470,6 +495,7 @@ class MessageComposerPresenter(
                     currentUserId = currentUserId,
                     canSendRoomMention = ::canSendRoomMention,
                     isInThread = isInThread,
+                    room = room,
                 )
                 suggestions.clear()
                 suggestions.addAll(result)
@@ -478,12 +504,67 @@ class MessageComposerPresenter(
         }
     }
 
+    // SC: Replace :shortcode: patterns with <img data-mx-emoticon> tags for custom emoji.
+    // Caller MUST have awaited customEmojiDraftStore.awaitHydration(draftRoomKey) so that
+    // any persisted-but-not-yet-loaded entries are visible in this snapshot.
+    private fun processCustomEmojiInMessage(message: Message): Message {
+        val customEmojiMap = customEmojiDraftStore.snapshot(draftRoomKey)
+        if (customEmojiMap.isEmpty()) return message
+        val body = message.markdown
+        // If we don't have a server-rendered HTML body, we have to fabricate one from the
+        // plain markdown — escape it first so user input like `<b>x</b>` doesn't become
+        // real HTML in the sent event.
+        var html = message.html ?: body.escapeHtmlText()
+        var hasReplacement = false
+        for ((shortcode, mxcUrl) in customEmojiMap) {
+            // Only allow mxc:// URLs to prevent injection of arbitrary src values
+            if (!mxcUrl.startsWith("mxc://")) continue
+            val pattern = ":$shortcode:"
+            if (body.contains(pattern)) {
+                val safeUrl = mxcUrl.escapeHtmlAttr()
+                val safeAlt = pattern.escapeHtmlAttr()
+                val imgTag = """<img data-mx-emoticon src="$safeUrl" alt="$safeAlt" title="$safeAlt" height="32" />"""
+                // The pattern itself needs the same escaping that we applied to the body
+                // we're searching, otherwise it won't match after escapeHtmlText.
+                val needle = if (message.html == null) pattern.escapeHtmlText() else pattern
+                html = html.replace(needle, imgTag)
+                hasReplacement = true
+            }
+        }
+        return if (hasReplacement) {
+            message.copy(html = html)
+        } else {
+            message
+        }
+    }
+
+    private fun String.escapeHtmlAttr(): String = this
+        .replace("&", "&amp;")
+        .replace("\"", "&quot;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+
+    // Used when fabricating an HTML body from plain markdown — preserves line breaks
+    // so multiline custom-emoji messages don't collapse into one line on clients
+    // that prefer formatted_body. Order matters: escape "<" before inserting <br />.
+    private fun String.escapeHtmlText(): String = this
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\n", "<br />")
+
     private fun CoroutineScope.sendMessage(
         markdownTextEditorState: MarkdownTextEditorState,
         richTextEditorState: RichTextEditorState,
         slashCommandAction: MutableState<AsyncAction<Unit>>,
     ) = launch {
-        val message = currentComposerMessage(markdownTextEditorState, richTextEditorState, withMentions = true)
+        val rawMessage = currentComposerMessage(markdownTextEditorState, richTextEditorState, withMentions = true)
+        // SC: Make sure any persisted shortcode → MXC mappings are loaded before we
+        // run the substitution. Without this, a send that races with first-open hydration
+        // would emit `:shortcode:` text instead of the <img> tag.
+        customEmojiDraftStore.awaitHydration(draftRoomKey)
+        // SC: Process custom emoji shortcodes into HTML <img> tags
+        val message = processCustomEmojiInMessage(rawMessage)
         val capturedMode = messageComposerContext.composerMode
 
         val slashCommand = if (capturedMode is MessageComposerMode.Normal) {
@@ -546,6 +627,8 @@ class MessageComposerPresenter(
 
         // Reset composer right away
         resetComposer(markdownTextEditorState, richTextEditorState, fromEdit = capturedMode is MessageComposerMode.Edit)
+        // SC: Clear custom emoji map after sending (also flushes the persisted entry)
+        customEmojiDraftStore.clear(draftRoomKey)
         when (capturedMode) {
             is MessageComposerMode.Attachment,
             is MessageComposerMode.Normal -> timelineController.invokeOnCurrentTimeline {
