@@ -98,6 +98,19 @@ class MarkdownTextEditorState(
         }
     }
 
+    // SC start
+    fun insertMentionAtCursor(userId: UserId, mentionSpanProvider: MentionSpanProvider) {
+        val currentText = SpannableStringBuilder(text.value())
+        val insertPos = selection.first
+        val mentionSpan = mentionSpanProvider.createUserMentionSpan(userId)
+        currentText.insert(insertPos, "@ ")
+        val end = insertPos + 1
+        currentText.setSpan(mentionSpan, insertPos, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        text.update(currentText, true)
+        selection = IntRange(end + 1, end + 1)
+    }
+    // SC end
+
     fun getMessageMarkdown(
         permalinkBuilder: PermalinkBuilder,
         mentionDisplayName: (UserId) -> String = { it.value }, // SC
