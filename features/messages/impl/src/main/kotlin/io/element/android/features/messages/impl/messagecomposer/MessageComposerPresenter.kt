@@ -418,6 +418,23 @@ class MessageComposerPresenter(
                         }
                     }
                 }
+                is MessageComposerEvent.InsertMention -> { // SC
+                    if (!showTextFormatting) {
+                        // Defensive: clamp the selection into the text bounds before insert,
+                        // to absorb any path that left the editor with an out-of-range cursor.
+                        val len = markdownTextEditorState.text.value().length
+                        val sel = markdownTextEditorState.selection
+                        if (sel.first !in 0..len || sel.last !in 0..len) {
+                            markdownTextEditorState.selection = len..len
+                        }
+                        markdownTextEditorState.insertMentionAtCursor(event.userId, mentionSpanProvider)
+                    } else {
+                        localCoroutineScope.launch {
+                            val link = permalinkBuilder.permalinkForUser(event.userId).getOrNull() ?: return@launch
+                            richTextEditorState.insertMentionAtSuggestion(text = event.userId.value, link = link)
+                        }
+                    }
+                }
                 MessageComposerEvent.SaveDraft -> {
                     val draft = createDraftFromState(markdownTextEditorState, richTextEditorState)
                     sessionCoroutineScope.updateDraft(draft, isVolatile = false)
@@ -984,7 +1001,9 @@ class MessageComposerPresenter(
             }
         } else {
             if (content.isEmpty()) {
-                markdownTextEditorState.selection = IntRange.EMPTY
+                // IntRange.EMPTY is 1..0 — its .first reports 1, which crashes any later
+                // insert-at-cursor against a length-0 text. Park the cursor at position 0.
+                markdownTextEditorState.selection = 0..0
             }
             val pillifiedContent = pillificationHelper.pillify(content, false)
             markdownTextEditorState.text.update(pillifiedContent, true)
