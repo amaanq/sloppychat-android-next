@@ -1,11 +1,14 @@
 package chat.schildi.theme
 
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -14,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import chat.schildi.lib.preferences.ScColorPref
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.userColor
@@ -65,6 +69,7 @@ fun ScTheme(
     applySystemBarsUpdate: Boolean = true,
     lightStatusBar: Boolean = !darkTheme,
     dynamicColor: Boolean = false, /* true to enable MaterialYou */
+    useMaterialYou: Boolean = ScPrefs.MATERIAL_YOU.value(),
     useElTypography: Boolean = ScPrefs.EL_TYPOGRAPHY.value(),
     content: @Composable () -> Unit,
 ) {
@@ -73,27 +78,59 @@ fun ScTheme(
     val useElTheme = ScPrefs.EL_THEME.value()
     val useBlackTheme = ScPrefs.BLACK_THEME.value()
 
-    val currentExposures = remember {
-        // EleLight is default
-        elementLightScExposures.copy()
-    }.apply { updateColorsFrom(getThemeExposures(darkTheme, useElTheme, useBlackTheme)) }
+    val effectiveMaterialYou = useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-    CompositionLocalProvider(
-        LocalScExposures provides currentExposures
-    ) {
-        ElementTheme(
-            darkTheme = darkTheme,
-            applySystemBarsUpdate = applySystemBarsUpdate,
-            lightStatusBar = lightStatusBar,
-            dynamicColor = dynamicColor,
-            compoundLight = if (useElTheme) elColorsLight else sclSemanticColors,
-            compoundDark = if (useElTheme) elColorsDark else if (useBlackTheme) scbSemanticColors else scdSemanticColors,
-            materialColorsLight = if (useElTheme) elMaterialColorSchemeLight else sclMaterialColorScheme,
-            materialColorsDark = if (useElTheme) elMaterialColorSchemeDark else if (useBlackTheme) scbMaterialColorScheme else scdMaterialColorScheme,
-            typography = typography,
-            typographyTokens = typographyTokens,
-            content = content,
-        )
+    if (effectiveMaterialYou) {
+        val context = LocalContext.current
+        val dynScheme = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        val compoundColors = dynamicSemanticColors(dynScheme, !darkTheme)
+        val themeExposures = dynamicScThemeExposures(dynScheme, !darkTheme)
+        val matScheme = dynScheme
+
+        val currentExposures = remember {
+            elementLightScExposures.copy()
+        }.apply { updateColorsFrom(themeExposures) }
+
+        CompositionLocalProvider(
+            LocalScExposures provides currentExposures
+        ) {
+            ElementTheme(
+                darkTheme = darkTheme,
+                applySystemBarsUpdate = applySystemBarsUpdate,
+                lightStatusBar = lightStatusBar,
+                dynamicColor = false, // We handle dynamic colors ourselves
+                compoundLight = compoundColors,
+                compoundDark = compoundColors,
+                materialColorsLight = matScheme,
+                materialColorsDark = matScheme,
+                typography = typography,
+                typographyTokens = typographyTokens,
+                content = content,
+            )
+        }
+    } else {
+        val currentExposures = remember {
+            // EleLight is default
+            elementLightScExposures.copy()
+        }.apply { updateColorsFrom(getThemeExposures(darkTheme, useElTheme, useBlackTheme)) }
+
+        CompositionLocalProvider(
+            LocalScExposures provides currentExposures
+        ) {
+            ElementTheme(
+                darkTheme = darkTheme,
+                applySystemBarsUpdate = applySystemBarsUpdate,
+                lightStatusBar = lightStatusBar,
+                dynamicColor = dynamicColor,
+                compoundLight = if (useElTheme) elColorsLight else sclSemanticColors,
+                compoundDark = if (useElTheme) elColorsDark else if (useBlackTheme) scbSemanticColors else scdSemanticColors,
+                materialColorsLight = if (useElTheme) elMaterialColorSchemeLight else sclMaterialColorScheme,
+                materialColorsDark = if (useElTheme) elMaterialColorSchemeDark else if (useBlackTheme) scbMaterialColorScheme else scdMaterialColorScheme,
+                typography = typography,
+                typographyTokens = typographyTokens,
+                content = content,
+            )
+        }
     }
 }
 
