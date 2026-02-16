@@ -8,9 +8,13 @@
 
 package io.element.android.features.messages.impl.messagecomposer.suggestions
 
+import chat.schildi.imagepacks.ImagePackService
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.core.data.filterUpTo
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembersState
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
@@ -21,11 +25,13 @@ import io.element.android.libraries.textcomposer.model.Suggestion
 import io.element.android.libraries.textcomposer.model.SuggestionType
 
 /**
- * This class is responsible for processing suggestions when `@`, `/` or `#` are type in the composer.
+ * This class is responsible for processing suggestions when `@`, `/`, `#`, or `:` are typed in the composer.
  */
 @Inject
 class SuggestionsProcessor(
     private val slashCommandService: SlashCommandService,
+    private val imagePackService: ImagePackService,
+    private val scPreferencesStore: ScPreferencesStore,
 ) {
     /**
      *  Process the suggestion.
@@ -35,6 +41,7 @@ class SuggestionsProcessor(
      *  @param currentUserId The current user id
      *  @param canSendRoomMention Should return true if the current user can send room mentions
      *  @param isInThread Whether the composer is in a thread or not, used to filter slash commands suggestions
+     *  @param room The current room for loading custom emoji packs
      *  @return The list of suggestions to display
      */
     suspend fun process(
@@ -44,6 +51,7 @@ class SuggestionsProcessor(
         currentUserId: UserId,
         canSendRoomMention: suspend () -> Boolean,
         isInThread: Boolean,
+        room: BaseRoom? = null,
     ): List<ResolvedSuggestion> {
         suggestion ?: return emptyList()
         return when (suggestion.type) {
@@ -84,7 +92,20 @@ class SuggestionsProcessor(
                     emptyList()
                 }
             }
-            SuggestionType.Emoji,
+            SuggestionType.Emoji -> {
+                // SC: Search custom emoji packs by shortcode
+                if (suggestion.text.length >= 2 && scPreferencesStore.getSetting(ScPrefs.ENABLE_CUSTOM_EMOJIS)) {
+                    imagePackService.getEmoticonsByShortcode(suggestion.text, room).map { image ->
+                        ResolvedSuggestion.CustomEmoji(
+                            shortcode = image.shortcode,
+                            mxcUrl = image.url,
+                            displayName = image.body,
+                        )
+                    }
+                } else {
+                    emptyList()
+                }
+            }
             is SuggestionType.Custom -> {
                 // Clear suggestions
                 emptyList()

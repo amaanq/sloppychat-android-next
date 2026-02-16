@@ -125,6 +125,7 @@ fun TextComposer(
     resolveAtRoomMentionDisplay: () -> TextDisplay,
     modifier: Modifier = Modifier,
     showTextFormatting: Boolean = false,
+    onStickerClick: (() -> Unit)? = null, // SC
 ) {
     val markdown = when (state) {
         is TextEditorState.Markdown -> state.state.text.value()
@@ -231,26 +232,27 @@ fun TextComposer(
     }
 
     @Composable
-    fun rememberEndButtonParams() = remember(
-        composerMode.isEditing,
-        voiceMessageState.endButtonKey(),
-        canSendTextMessage,
-    ) {
-        when {
-            !canSendTextMessage ->
-                when (voiceMessageState) {
-                    VoiceMessageState.Idle -> EndButtonParams(
-                        endButtonContentDescriptionResId = CommonStrings.a11y_voice_message_record,
-                        endButtonClick = {
-                            performHapticFeedback()
-                            onVoiceRecorderEvent.invoke(VoiceMessageRecorderEvent.Start)
-                        },
-                        endButtonContent = @Composable {
-                            VoiceMessageRecorderButtonIcon(
-                                isRecording = false,
-                            )
-                        }
-                    )
+    fun rememberEndButtonParams(): EndButtonParams {
+        return remember(
+            composerMode.isEditing,
+            voiceMessageState.endButtonKey(),
+            canSendTextMessage,
+        ) {
+            when {
+                !canSendTextMessage ->
+                    when (voiceMessageState) {
+                        VoiceMessageState.Idle -> EndButtonParams(
+                            endButtonContentDescriptionResId = CommonStrings.a11y_voice_message_record,
+                            endButtonClick = {
+                                performHapticFeedback()
+                                onVoiceRecorderEvent.invoke(VoiceMessageRecorderEvent.Start)
+                            },
+                            endButtonContent = @Composable {
+                                VoiceMessageRecorderButtonIcon(
+                                    isRecording = false,
+                                )
+                            }
+                        )
                     is VoiceMessageState.Recording -> EndButtonParams(
                         endButtonContentDescriptionResId = CommonStrings.a11y_voice_message_stop_recording,
                         endButtonClick = {
@@ -313,6 +315,7 @@ fun TextComposer(
                 },
             )
         }
+    }
     }
 
     @Composable
@@ -402,6 +405,7 @@ fun TextComposer(
             onAddAttachment = onAddAttachment,
             onDeleteVoiceMessage = onDeleteVoiceMessage,
             onVoiceRecorderEvent = onVoiceRecorderEvent,
+            onStickerClick = onStickerClick, // SC
         )
     }
 
@@ -443,6 +447,7 @@ private fun StandardLayout(
     onDeleteVoiceMessage: () -> Unit,
     onVoiceRecorderEvent: (VoiceMessageRecorderEvent) -> Unit,
     modifier: Modifier = Modifier,
+    onStickerClick: (() -> Unit)? = null, // SC
 ) {
     Column(modifier = modifier) {
         if (isRoomEncrypted == false && !ScPrefs.SC_TIMELINE_LAYOUT.value()) {
@@ -510,6 +515,22 @@ private fun StandardLayout(
                     textInput()
                 } else {
                     voiceRecording()
+                }
+            }
+            // SC: Sticker button - show when idle
+            if (onStickerClick != null && voiceMessageState is VoiceMessageState.Idle) {
+                IconButton(
+                    modifier = Modifier
+                        .padding(bottom = 5.dp, top = 5.dp, start = 6.dp)
+                        .size(48.dp),
+                    onClick = onStickerClick,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = CompoundIcons.Sticker(),
+                        contentDescription = null,
+                        tint = ElementTheme.colors.iconSecondary,
+                    )
                 }
             }
             // To avoid loosing keyboard focus, the IconButton has to be defined here and has to be always enabled.
