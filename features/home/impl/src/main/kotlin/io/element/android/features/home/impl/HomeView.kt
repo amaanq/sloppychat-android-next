@@ -143,6 +143,7 @@ fun HomeView(
             onStartChatClick = { if (firstThrottler.canHandle()) onStartChatClick() },
             onCreateSpaceClick = { if (firstThrottler.canHandle()) onCreateSpaceClick() },
             onMenuActionClick = onMenuActionClick,
+            onMarkAllAsRead = { state.eventSink(RoomListEvent.MarkAllAsRead) }, // SC
         )
         // This overlaid view will only be visible when state.displaySearchResults is true
         RoomListSearchView(
@@ -169,6 +170,7 @@ private fun HomeScaffold(
     onStartChatClick: () -> Unit,
     onCreateSpaceClick: () -> Unit,
     onMenuActionClick: (RoomListMenuAction) -> Unit,
+    onMarkAllAsRead: () -> Unit, // SC
     modifier: Modifier = Modifier,
 ) {
     fun onRoomClick(room: RoomListRoomSummary) {
@@ -236,6 +238,7 @@ private fun HomeScaffold(
                 // SC end
                 onToggleSearch = { roomListState.eventSink(RoomListEvent.ToggleSearchResults) },
                 onMenuActionClick = onMenuActionClick,
+                onMarkAllAsRead = onMarkAllAsRead, // SC
                 onOpenSettings = onOpenSettings,
                 onAccountSwitch = {
                     state.eventSink(HomeEvent.SwitchToAccount(it))
