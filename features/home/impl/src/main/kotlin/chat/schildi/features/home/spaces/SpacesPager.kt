@@ -1,17 +1,7 @@
 package chat.schildi.features.home.spaces
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.calculateTargetValue
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -19,70 +9,40 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBackIos
-import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import chat.schildi.lib.compose.ScrollableTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
-import chat.schildi.lib.compose.TabRowDefaults
-import chat.schildi.lib.compose.TabRowDefaults.tabIndicatorOffset
 import chat.schildi.lib.preferences.ScAppStateStore
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.theme.ScTheme
 import io.element.android.compound.theme.ElementTheme
-import io.element.android.features.home.impl.HomeState
-import io.element.android.features.home.impl.spaces.HomeSpacesView
 import io.element.android.libraries.designsystem.components.avatar.Avatar
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
 import io.element.android.libraries.designsystem.components.avatar.AvatarType
-import io.element.android.libraries.designsystem.text.toPx
 import io.element.android.libraries.designsystem.theme.unreadIndicator
 import io.element.android.libraries.designsystem.utils.OnLifecycleEvent
-import io.element.android.libraries.matrix.api.core.RoomId
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.math.absoluteValue
@@ -519,26 +479,26 @@ private fun SpaceTab(
 }
 
 @Composable
-private fun AbstractSpaceIcon(
+fun AbstractSpaceIcon(
     space: SpaceListDataSource.AbstractSpaceHierarchyItem?,
     size: AvatarSize,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     shape: Shape = CircleShape,
 ) {
     when(space) {
         is SpaceListDataSource.SpaceHierarchyItem -> Avatar(space.info.avatarData.copy(size = size), avatarType = AvatarType.Sc(shape), modifier = modifier)
         is SpaceListDataSource.PseudoSpaceItem -> PseudoSpaceIcon(imageVector = space.icon, size = size, color = color, modifier = modifier)
-        else -> PseudoSpaceIcon(Icons.Filled.Home, AvatarSize.SpaceSwipeIndicator, color = color, modifier = modifier)
+        else -> PseudoSpaceIcon(Icons.Filled.Home, AvatarSize.BottomSpaceBar, color = color, modifier = modifier)
     }
 }
 
 @Composable
-private fun PseudoSpaceIcon(
+fun PseudoSpaceIcon(
     imageVector: ImageVector,
     size: AvatarSize,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
     Icon(
         imageVector = imageVector,
@@ -549,29 +509,7 @@ private fun PseudoSpaceIcon(
 }
 
 @Composable
-private fun ShowAllTab(
-    unreadCounts: SpaceUnreadCountsDataSource.SpaceUnreadCounts?,
-    selected: Boolean,
-    collapsed: Boolean,
-    compact: Boolean,
-    onClick: () -> Unit
-) {
-    AbstractSpaceTab(
-        text = stringResource(id = chat.schildi.lib.R.string.sc_space_all_rooms_title),
-        selected = selected,
-        collapsed = collapsed,
-        expandable = false,
-        compact = compact,
-        onClick = onClick,
-    ) {
-        UnreadCountBox(unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
-            PseudoSpaceIcon(Icons.Filled.Home, spaceTabIconSize(compact))
-        }
-    }
-}
-
-@Composable
-private fun UnreadCountBox(unreadCounts: SpaceUnreadCountsDataSource.SpaceUnreadCounts?, offset: Dp, content: @Composable () -> Unit) {
+fun UnreadCountBox(unreadCounts: SpaceUnreadCountsDataSource.SpaceUnreadCounts?, offset: Dp, content: @Composable () -> Unit) {
     val mode = ScPrefs.SPACE_UNREAD_COUNTS.value()
     if (unreadCounts == null || mode == ScPrefs.SpaceUnreadCountMode.HIDE) {
         content()
@@ -654,17 +592,13 @@ fun PersistSpaceOnPause(scAppStateStore: ScAppStateStore, scRoomListDataSource: 
     }
 }
 
-private fun spaceTabIconSize(compact: Boolean) = if (compact) AvatarSize.CompactBottomSpaceBar else AvatarSize.BottomSpaceBar
-private fun spaceTabIconShape(compact: Boolean) = if (compact) RoundedCornerShape(8.dp) else RoundedCornerShape(4.dp)
-private fun spaceTabUnreadBadgeOffset(compact: Boolean) = if (compact) 6.dp else 8.dp
-
 // For other places in the UI wanting to render space icons
 @Composable
 fun GenericSpaceIcon(
     space: SpaceListDataSource.AbstractSpaceHierarchyItem?,
     modifier: Modifier = Modifier,
-    size: AvatarSize = spaceTabIconSize(false),
-    shape: Shape = spaceTabIconShape(true),
+    size: AvatarSize = AvatarSize.BottomSpaceBar,
+    shape: Shape = RoundedCornerShape(8.dp),
 ) {
     AbstractSpaceIcon(space = space, size = size, shape = shape, modifier = modifier)
 }

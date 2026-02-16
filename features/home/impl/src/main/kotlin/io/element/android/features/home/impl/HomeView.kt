@@ -20,10 +20,12 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,9 +45,11 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import chat.schildi.features.home.spaces.SpaceNavigationDrawer
 import chat.schildi.lib.compose.thenIf
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
+import io.element.android.features.home.impl.roomlist.RoomListContentState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -187,9 +191,32 @@ private fun HomeScaffold(
     val roomsLazyListState = rememberLazyListState()
     val spacesLazyListState = rememberLazyListState()
 
-    // SC
-    var spaceBarHeight by remember { mutableIntStateOf(0) }
+    // SC: Drawer state and space data extraction
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
+    val roomsContentState = roomListState.contentState as? RoomListContentState.Rooms
+    val spacesList = roomsContentState?.spacesList ?: kotlinx.collections.immutable.persistentListOf()
+    val spaceSelectionHierarchy = roomsContentState?.spaceSelectionHierarchy ?: kotlinx.collections.immutable.persistentListOf()
+    val totalUnreadCounts = roomsContentState?.totalUnreadCounts
 
+    // Back press navigates from selected space to all chats
+    BackHandler(
+        enabled = spaceSelectionHierarchy.isNotEmpty() && ScPrefs.SPACE_NAV.value() && !drawerState.isOpen,
+    ) {
+        roomListState.eventSink(RoomListEvent.UpdateSpaceFilter(emptyList()))
+        coroutineScope.launch { roomsLazyListState.scrollToItem(0) }
+    }
+
+    SpaceNavigationDrawer(
+        drawerState = drawerState,
+        spacesList = spacesList,
+        totalUnreadCounts = totalUnreadCounts,
+        spaceSelectionHierarchy = spaceSelectionHierarchy,
+        onSpaceSelected = { selection ->
+            roomListState.eventSink(RoomListEvent.UpdateSpaceFilter(selection))
+            coroutineScope.launch { roomsLazyListState.scrollToItem(0) }
+        },
+    ) {
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -201,7 +228,7 @@ private fun HomeScaffold(
                 // SC start
                 selectedSpaceName = state.roomListState.resolveSpaceName(),
                 onStartChatClick = onStartChatClick,
-                onCreateSpaceClick = onCreateSpaceClick.takeIf { state.homeSpacesState.canCreateSpaces },
+                onOpenSpaceDrawer = { coroutineScope.launch { drawerState.open() } },
                 // SC end
                 onToggleSearch = { roomListState.eventSink(RoomListEvent.ToggleSearchResults) },
                 onMenuActionClick = onMenuActionClick,
@@ -247,12 +274,12 @@ private fun HomeScaffold(
                     floatingActionButton = when (state.currentHomeNavigationBarItem) {
                         HomeNavigationBarItem.Chats -> {
                             {
-                                HomeFloatingActionButton(spaceBarHeight, onStartChatClick, CommonStrings.action_create_room)
+                                HomeFloatingActionButton(onStartChatClick, CommonStrings.action_create_room)
                             }
                         }
                         HomeNavigationBarItem.Spaces -> if (state.homeSpacesState.canCreateSpaces) {
                             {
-                                HomeFloatingActionButton(spaceBarHeight, onCreateSpaceClick, CommonStrings.action_create_space)
+                                HomeFloatingActionButton(onCreateSpaceClick, CommonStrings.action_create_space)
                             }
                         } else {
                             // No FAB for spaces if we cannot create spaces
@@ -261,7 +288,7 @@ private fun HomeScaffold(
                     },
                 )
             } else if (ScPrefs.SNC_FAB.value()) {
-                HomeFloatingActionButton(spaceBarHeight, onStartChatClick, CommonStrings.action_create_room)
+                HomeFloatingActionButton(onStartChatClick, CommonStrings.action_create_room)
             }
         },
         floatingActionButtonPosition = if (state.showNavigationBar && !ScPrefs.SPACE_NAV.value()) FabPosition.Center else FabPosition.End,
@@ -279,7 +306,6 @@ private fun HomeScaffold(
                         onUpstreamSpaceClick = onRoomClick,
                         onCreateSpaceClick = onCreateSpaceClick,
                         onExploreSpaceClick = {}, // TODO use once upstream implements this
-                        onMeasureSpaceBarHeight = { spaceBarHeight = it },
                         // SC end
                         spaceFiltersState = roomListState.spaceFiltersState,
                         lazyListState = roomsLazyListState,
@@ -326,18 +352,32 @@ private fun HomeScaffold(
                 }
             }
         },
+        floatingActionButton = {
+            if (state.displayActions && ScPrefs.SNC_FAB.value()) {
+                FloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer, // SC
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer, // SC
+                    onClick = onStartChatClick,
+                ) {
+                    Icon(
+                        imageVector = CompoundIcons.Plus(),
+                        contentDescription = stringResource(id = R.string.screen_roomlist_a11y_create_message),
+                    )
+                }
+            }
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     )
+    } // SpaceNavigationDrawer
 }
 
 @Composable
 private fun HomeFloatingActionButton(
-    spaceBarHeight: Int, // SC
     onClick: () -> Unit,
     contentDescription: Int,
     modifier: Modifier = Modifier,
 ) {
-    FloatingActionButton(onClick = onClick, modifier = modifier.addSpaceNavPadding(spaceBarHeight)) {
+    FloatingActionButton(onClick = onClick, modifier = modifier) {
         Icon(
             imageVector = CompoundIcons.Plus(),
             contentDescription = stringResource(id = contentDescription),
