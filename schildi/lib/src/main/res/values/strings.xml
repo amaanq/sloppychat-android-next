@@ -6,10 +6,10 @@
     <string name="sc_action_low_priority">Low priority</string>
 
     <!-- Onboarding -->
-    <string name="sc_onboarding_welcome_title">Welcome to SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Welcome to SloppyChat</string>
     <string name="sc_onboarding_welcome_summary">Bringing turtles into the Matrix</string>
 
-    <!-- SchildiChat settings -->
+    <!-- SloppyChat settings -->
     <string name="sc_pref_tweaks_title">Turtle tweaks</string>
     <string name="sc_pref_sc_themes_title">SC theme</string>
     <string name="sc_pref_sc_themes_summary">Disable to follow Element\'s theme.</string>

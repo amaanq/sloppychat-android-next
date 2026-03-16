@@ -5,7 +5,7 @@
     <string name="sc_pref_pl_display_name_summary_warning">Ne funkcias fidinde kiam membrolisto ankoraŭ ne estis plene prenita</string>
     <string name="sc_onboarding_welcome_summary">Alportas testudojn al la Matrix</string>
     <string name="sc_pref_sc_overview_layout_title">SC Superrigarda aranĝo</string>
-    <string name="sc_onboarding_welcome_title">Bonvenu al SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Bonvenu al SloppyChat</string>
     <string name="sc_pref_sc_floating_date_title">Flosanta dato</string>
     <string name="sc_pref_fast_transitions_title">Rapidaj transpasoj</string>
     <string name="sc_pref_tweaks_title">Testudaj alĝustigetoj</string>
