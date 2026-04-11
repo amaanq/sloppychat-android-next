@@ -7,21 +7,28 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import chat.schildi.matrixsdk.containsOnlyEmojis
 import chat.schildi.theme.scBubbleFont
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.size.Size
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
@@ -92,6 +99,7 @@ fun ScTimelineItemTextView(
     }
     val textColor = ElementTheme.colors.textPrimary
     val density = LocalDensity.current
+    val actualImageSizes = remember(content.inlineImages) { mutableStateMapOf<String, IntSize>() }
     MatrixStyledFormattedText(
         content,
         color = textColor,
@@ -126,8 +134,15 @@ fun ScTimelineItemTextView(
             maxWidth = MAX_IMAGE_WIDTH.dp,
             minHeight = MIN_IMAGE_HEIGHT.dp,
             maxHeight = MAX_IMAGE_HEIGHT.dp,
+            actualImageSizes = actualImageSizes,
         ) { info, modifier ->
-            InlineImage(info, textStyle, textColor, modifier)
+            InlineImage(
+                info = info,
+                textStyle = textStyle,
+                textColor = textColor,
+                modifier = modifier,
+                onPainterSuccess = { result -> actualImageSizes[info.uri] = IntSize(result.image.width, result.image.height) },
+            )
         },
         onLinkLongPress = { link ->
             (link as? LinkAnnotation.Url)?.url?.let { url ->
@@ -143,16 +158,32 @@ private fun InlineImage(
     textStyle: TextStyle,
     textColor: Color,
     modifier: Modifier = Modifier,
+    onPainterSuccess: (SuccessResult) -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val model = remember(info) {
+        val data = MediaRequestData(MediaSource(info.uri), MediaRequestData.Kind.Content)
+        // Non-square custom emotes may unexpectedly resize once we know the measures, and become blurry.
+        // For huge inline images it's probably safer to keep not loading the full original size.
+        if (info.isEmote && info.width == null) {
+            ImageRequest.Builder(context)
+                .data(data)
+                .size(Size.ORIGINAL)
+                .build()
+        } else {
+            data
+        }
+    }
     SubcomposeAsyncImage(
         modifier = modifier,
-        model = MediaRequestData(MediaSource(info.uri), MediaRequestData.Kind.Content),
-        contentScale = ContentScale.Crop,
+        model = model,
+        contentScale = ContentScale.Fit,
         alignment = Alignment.Center,
         contentDescription = info.alt ?: info.title,
     ) {
+        val painterState = painter.state.collectAsState().value
         AnimatedContent(
-            painter.state.collectAsState().value,
+            painterState,
             transitionSpec = {
                 fadeIn(
                     animationSpec = tween(50)
@@ -162,7 +193,12 @@ private fun InlineImage(
             },
         ) { state ->
             when (state) {
-                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent(modifier)
+                is AsyncImagePainter.State.Success -> {
+                    SubcomposeAsyncImageContent(Modifier)
+                    LaunchedEffect(state.result) {
+                        onPainterSuccess(state.result)
+                    }
+                }
                 else -> {
                     Text(
                         info.alt ?: info.title ?: "\uFFFD",
