@@ -23,6 +23,7 @@ find "$mydir" -not -path "./schildi/**" \
             s|Element X|SchildiChat Next|g;
             s/SchildiChat\( \|-\)Pro/Element\1Pro/g;
             s/SchildiChatul/Elementul/g;
+            s/SchildiChat Classic/SchildiChat Legacy/g;
             s/SchildiChat\( \|-\)Call/Element\1Call/g' '{}' \;
 
 git --no-pager diff \*/translations.xml
