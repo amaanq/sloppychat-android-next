@@ -13,6 +13,7 @@ import io.element.android.features.invite.api.InviteData
 import io.element.android.libraries.designsystem.components.avatar.AvatarData
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.notification.CallIntent
 import io.element.android.libraries.matrix.api.room.BridgeState
 import io.element.android.libraries.matrix.api.room.MatrixSpaceChildInfo
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
@@ -48,6 +49,7 @@ data class RoomListRoomSummary(
     val avatarData: AvatarData,
     val userDefinedNotificationMode: RoomNotificationMode?,
     val hasRoomCall: Boolean,
+    val activeCallIntent: CallIntent?,
     val isDirect: Boolean,
     val isDm: Boolean,
     val isFavorite: Boolean,

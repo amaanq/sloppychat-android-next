@@ -122,6 +122,7 @@ internal val sclSemanticColors = SemanticColors(
     bgCriticalHovered = LightColorTokens.colorRed1000, // TODO
     bgCriticalSubtle = LightColorTokens.colorRed200, // TODO
     bgCriticalSubtleHovered = LightColorTokens.colorRed300, // TODO
+    borderAccentPrimary = scl_accent,
     borderAccentSubtle = scl_accent,
     bgSuccessSubtle = ScColors.colorAccentGreen.copy(alpha=0.2f),
     bgInfoSubtle = ScColors.colorAccentBluePale,
@@ -160,6 +161,7 @@ internal val sclSemanticColors = SemanticColors(
     bgBadgeCritical = LightColorTokens.colorRed200, // TODO?
     bgBadgePrimary = scl_bg,
     bgBadgeSecondary = scl_bgFloating,
+    separatorPrimary = scl_divider,
     // TODO-start
     gradientActionStop1 = LightColorTokens.colorGreen500,
     gradientActionStop2 = LightColorTokens.colorGreen700,

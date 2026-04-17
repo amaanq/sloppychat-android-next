@@ -128,6 +128,7 @@ internal val scdSemanticColors = SemanticColors(
     bgCriticalHovered = DarkColorTokens.colorRed1000, // TODO
     bgCriticalSubtle = DarkColorTokens.colorRed200, // TODO
     bgCriticalSubtleHovered = DarkColorTokens.colorRed300, // TODO
+    borderAccentPrimary = scd_accent,
     borderAccentSubtle = scd_accent,
     bgSuccessSubtle = ScColors.colorAccentGreen.copy(alpha = 0.2f),
     bgInfoSubtle = ScColors.colorAccentBlueDark,
@@ -160,6 +161,7 @@ internal val scdSemanticColors = SemanticColors(
     bgAccentSelected = scd_accent,
     bgAccentHovered = scd_accent,
     bgAccentPressed = scd_accent,
+    separatorPrimary = scd_divider,
     // TODO-start
     gradientActionStop1 = DarkColorTokens.colorGreen1100,
     gradientActionStop2 = DarkColorTokens.colorGreen900,

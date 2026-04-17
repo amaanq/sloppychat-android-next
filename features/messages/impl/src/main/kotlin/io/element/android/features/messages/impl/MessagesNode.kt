@@ -147,6 +147,8 @@ class MessagesNode(
         fun navigateToPinnedMessagesList()
         fun navigateToKnockRequestsList()
         fun navigateToDeveloperSettings()
+
+        fun navigateToThreadsList()
     }
 
     override fun onBuilt() {
@@ -366,6 +368,7 @@ class MessagesNode(
                         onViewRequestsClick = callback::navigateToKnockRequestsList,
                     )
                 },
+                onThreadsListClick = callback::navigateToThreadsList,
             )
             roomMemberModerationRenderer.Render(
                 state = state.roomMemberModerationState,

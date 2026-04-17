@@ -41,7 +41,6 @@ import chat.schildi.theme.ScTheme
 import chat.schildi.theme.scBubbleFont
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
-import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.features.messages.impl.timeline.aTimelineItemEvent
 import io.element.android.features.messages.impl.timeline.components.ATimelineItemEventRow
@@ -87,7 +86,6 @@ fun TimelineItemImageView(
             modifier = containerModifier.blurHashBackground(content.blurhash, alpha = 0.9f),
             aspectRatio = coerceRatioWhenHidingContent(content.aspectRatio, hideMediaContent),
         ) {
-            if (shouldDrawScPreviewMedia(content.mediaSource)) { ScPreviewMedia(content.mediaSource) ; return@TimelineItemAspectRatioBox }
             ProtectedView(
                 hideContent = hideMediaContent,
                 onShowClick = onShowContentClick,

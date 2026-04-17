@@ -201,7 +201,7 @@ private fun HomeScaffold(
                 // SC start
                 selectedSpaceName = state.roomListState.resolveSpaceName(),
                 onStartChatClick = onStartChatClick,
-                onCreateSpaceClick = onCreateSpaceClick.takeIf { state.homeSpacesState.canCreateSpaces },
+                onCreateSpaceClick = onCreateSpaceClick,
                 // SC end
                 onToggleSearch = { roomListState.eventSink(RoomListEvent.ToggleSearchResults) },
                 onMenuActionClick = onMenuActionClick,
@@ -221,50 +221,47 @@ private fun HomeScaffold(
             )
         },
         floatingActionButton = {
-            if (state.showNavigationBar && !ScPrefs.SPACE_NAV.value()) {
-                val coroutineScope = rememberCoroutineScope()
-                HomeBottomBar(
-                    currentHomeNavigationBarItem = state.currentHomeNavigationBarItem,
-                    onItemClick = { item ->
-                        // scroll to top if selecting the same item
-                        if (item == state.currentHomeNavigationBarItem) {
-                            val lazyListStateTarget = when (item) {
-                                HomeNavigationBarItem.Chats -> roomsLazyListState
-                                HomeNavigationBarItem.Spaces -> spacesLazyListState
-                            }
-                            coroutineScope.launch {
-                                if (lazyListStateTarget.firstVisibleItemIndex > 10) {
-                                    lazyListStateTarget.scrollToItem(10)
-                                }
-                                // Also reset the scrollBehavior height offset as it's not triggered by programmatic scrolls
-                                scrollBehavior.state.heightOffset = 0f
-                                lazyListStateTarget.animateScrollToItem(0)
-                            }
-                        } else {
-                            state.eventSink(HomeEvent.SelectHomeNavigationBarItem(item))
-                        }
-                    },
-                    floatingActionButton = when (state.currentHomeNavigationBarItem) {
-                        HomeNavigationBarItem.Chats -> {
-                            {
-                                HomeFloatingActionButton(spaceBarHeight, onStartChatClick, CommonStrings.action_create_room)
-                            }
-                        }
-                        HomeNavigationBarItem.Spaces -> if (state.homeSpacesState.canCreateSpaces) {
-                            {
-                                HomeFloatingActionButton(spaceBarHeight, onCreateSpaceClick, CommonStrings.action_create_space)
-                            }
-                        } else {
-                            // No FAB for spaces if we cannot create spaces
-                            null
-                        }
-                    },
-                )
-            } else if (ScPrefs.SNC_FAB.value()) {
-                HomeFloatingActionButton(spaceBarHeight, onStartChatClick, CommonStrings.action_create_room)
+            if (ScPrefs.SPACE_NAV.value()) {
+                if (ScPrefs.SNC_FAB.value()) {
+                    HomeFloatingActionButton(spaceBarHeight, onStartChatClick, CommonStrings.action_create_room)
+                }
+                return@Scaffold
             }
+            val coroutineScope = rememberCoroutineScope()
+            HomeBottomBar(
+                currentHomeNavigationBarItem = state.currentHomeNavigationBarItem,
+                onItemClick = { item ->
+                    // scroll to top if selecting the same item
+                    if (item == state.currentHomeNavigationBarItem) {
+                        val lazyListStateTarget = when (item) {
+                            HomeNavigationBarItem.Chats -> roomsLazyListState
+                            HomeNavigationBarItem.Spaces -> spacesLazyListState
+                        }
+                        coroutineScope.launch {
+                            if (lazyListStateTarget.firstVisibleItemIndex > 10) {
+                                lazyListStateTarget.scrollToItem(10)
+                            }
+                            // Also reset the scrollBehavior height offset as it's not triggered by programmatic scrolls
+                            scrollBehavior.state.heightOffset = 0f
+                            lazyListStateTarget.animateScrollToItem(0)
+                        }
+                    } else {
+                        state.eventSink(HomeEvent.SelectHomeNavigationBarItem(item))
+                    }
+                },
+                floatingActionButton = {
+                    when (state.currentHomeNavigationBarItem) {
+                        HomeNavigationBarItem.Chats -> {
+                            HomeFloatingActionButton(spaceBarHeight, onStartChatClick, CommonStrings.action_create_room)
+                        }
+                        HomeNavigationBarItem.Spaces -> {
+                            HomeFloatingActionButton(spaceBarHeight, onCreateSpaceClick, CommonStrings.action_create_space)
+                        }
+                    }
+                },
+            )
         },
-        floatingActionButtonPosition = if (state.showNavigationBar && !ScPrefs.SPACE_NAV.value()) FabPosition.Center else FabPosition.End,
+        floatingActionButtonPosition = if (ScPrefs.SPACE_NAV.value()) FabPosition.End else FabPosition.Center,
         content = { padding ->
             val contentPadding = PaddingValues(
                 bottom = (if (ScPrefs.SNC_FAB.value()) 96.dp else 0.dp),
