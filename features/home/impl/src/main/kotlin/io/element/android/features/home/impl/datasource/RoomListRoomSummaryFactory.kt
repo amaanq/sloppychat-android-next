@@ -47,6 +47,7 @@ class RoomListRoomSummaryFactory(
             notificationCount = roomInfo.notificationCount,
             highlightCount = roomInfo.highlightCount,
             unreadCount = roomInfo.unreadCount,
+            unreadCountUnderestimate = roomInfo.unreadCountUnderestimate,
             lastMessageTimestamp = roomSummary.latestEventTimestamp,
             isLowPriority = roomInfo.isLowPriority,
             bridgeState = roomInfo.bridgeState.toImmutableList(),

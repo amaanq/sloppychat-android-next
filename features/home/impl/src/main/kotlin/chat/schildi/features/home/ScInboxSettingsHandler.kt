@@ -27,6 +27,7 @@ class ScInboxSettingsHandler(
                     buryLowPriority = ScPrefs.BURY_LOW_PRIORITY.safeLookup(lookup),
                     clientSideUnreadCounts = ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.safeLookup(lookup),
                     withSilentUnread = ScPrefs.SORT_WITH_SILENT_UNREAD.safeLookup(lookup),
+                    withInaccurateSilentUnread = ScPrefs.INDICATE_UNREAD_COUNT_UNDERESTIMATES.safeLookup(lookup),
                 )
             )
         }.combine(roomListFilterFlow) {a, b ->

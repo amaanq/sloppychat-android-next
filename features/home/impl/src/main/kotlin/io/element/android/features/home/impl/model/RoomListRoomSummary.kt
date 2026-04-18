@@ -38,6 +38,7 @@ data class RoomListRoomSummary(
     val notificationCount: Long = 0,
     val highlightCount: Long = 0,
     val unreadCount: Long = 0,
+    val unreadCountUnderestimate: Boolean = false,
     // SC client-side sorting
     val lastMessageTimestamp: Long? = null,
     val isLowPriority: Boolean = false,

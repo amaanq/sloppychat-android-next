@@ -55,6 +55,19 @@ object ScPrefs {
             RENDER_SILENT_UNREAD.toDependency(),
         )
     )
+    val INDICATE_UNREAD_COUNT_UNDERESTIMATES = ScBoolPref(
+        "INDICATE_UNREAD_COUNT_UNDERESTIMATES",
+        false,
+        R.string.sc_pref_indicate_unread_count_underestimates_title,
+        R.string.sc_pref_indicate_unread_count_underestimates_summary,
+        upstreamChoice = false,
+        authorsChoice = true,
+        disabledValue = false,
+        dependencies = listOf(
+            RENDER_SILENT_UNREAD.toDependency(),
+            SC_OVERVIEW_LAYOUT.toDependency(),
+        )
+    )
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, R.string.sc_pref_dual_mention_unread_counts_title, R.string.sc_pref_dual_mention_unread_counts_summary, authorsChoice = true, dependencies = SC_OVERVIEW_LAYOUT.asDependencies())
     val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, R.string.sc_pref_hide_invites_title, R.string.sc_pref_hide_invites_summary)
     val INBOX_BRIDGE_AVATARS = ScBoolPref("INBOX_BRIDGE_AVATARS", true, R.string.sc_pref_inbox_bridge_avatars_title, R.string.sc_pref_inbox_bridge_avatars_summary, authorsChoice = true, upstreamChoice = false, dependencies = SC_OVERVIEW_LAYOUT.asDependencies())
@@ -224,6 +237,9 @@ object ScPrefs {
             NOTIFICATION_ONLY_ALERT_ONCE,
         )),
         ScPrefScreen(R.string.sc_pref_screen_experimental_title, R.string.sc_pref_screen_experimental_summary, listOf(
+            ScPrefCategory(R.string.sc_pref_category_unread_counts, null, listOf(
+                INDICATE_UNREAD_COUNT_UNDERESTIMATES,
+            )),
             ScPrefCategory(R.string.sc_pref_category_timeline, null, listOf(
                 PL_DISPLAY_NAME,
                 JUMP_TO_UNREAD,
@@ -263,6 +279,7 @@ object ScPrefs {
         ELEMENT_ROOM_LIST_FILTERS, // Used to be: ScUpstreamFeatureFlagAliasPref(FeatureFlags.RoomListFilters, R.string.sc_upstream_feature_flag_room_list_filters),
         SNC_FAB.copy(titleRes = R.string.sc_pref_snc_fab_title_short),
         RENDER_SILENT_UNREAD,
+        INDICATE_UNREAD_COUNT_UNDERESTIMATES.copy(titleRes = R.string.sc_pref_indicate_unread_count_underestimates_title_short),
         INBOX_BRIDGE_AVATARS,
         // Timeline settings that don't reload live while the room is open
         ScPrefCategory(R.string.sc_pref_category_timeline_short, null, listOf(

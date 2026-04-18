@@ -69,6 +69,9 @@
     <string name="sc_pref_sort_with_silent_unread_summary">Sort muted unread chats above fully read chats</string>
     <string name="sc_pref_render_silent_unread_title">Show silent unread counts</string>
     <string name="sc_pref_render_silent_unread_summary">Render unread message counts also for muted chats</string>
+    <string name="sc_pref_indicate_unread_count_underestimates_title">Indicate unread count underestimates</string>
+    <string name="sc_pref_indicate_unread_count_underestimates_title_short">Unread insecurities</string>
+    <string name="sc_pref_indicate_unread_count_underestimates_summary">Render question mark and plus indicators for incomplete unread count calculations</string>
     <string name="sc_pref_prefer_freeform_reactions_title">Prefer freeform reactions</string>
     <string name="sc_pref_prefer_freeform_reactions_summary">Open the emoji picker showing the freeform reaction input by default</string>
     <string name="sc_pref_prefer_fullscreen_reaction_sheet_title">Fullscreen reaction picker</string>
