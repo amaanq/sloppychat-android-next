@@ -6,7 +6,8 @@ import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 
 private fun RoomListRoomSummary.hasNewContent(includeSilentUnread: Boolean, clientGeneratedUnread: Boolean) = when {
-    isMarkedUnread || displayType == RoomSummaryDisplayType.INVITE -> true
+    displayType == RoomSummaryDisplayType.INVITE -> false
+    isMarkedUnread -> true
     clientGeneratedUnread -> (includeSilentUnread && numberOfUnreadMessages > 0) || numberOfUnreadMentions > 0 || numberOfUnreadNotifications > 0
     else ->  (includeSilentUnread && unreadCount > 0) || highlightCount > 0 || notificationCount > 0
 }

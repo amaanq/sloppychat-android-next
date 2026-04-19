@@ -8,6 +8,7 @@
 
 package io.element.android.features.home.impl.search
 
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import io.element.android.features.home.impl.datasource.aRoomListRoomSummaryFactory
 import io.element.android.libraries.dateformatter.test.FakeDateFormatter
@@ -155,6 +156,7 @@ fun TestScope.createRoomListSearchPresenter(
                         roomLatestEventFormatter = FakeRoomLatestEventFormatter(),
                     ),
                     coroutineDispatchers = testCoroutineDispatchers(),
+                    scPreferencesStore = PreviewScPreferencesStore,
                     coroutineScope = coroutineScope,
                 )
             }
