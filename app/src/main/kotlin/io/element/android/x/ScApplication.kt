@@ -9,6 +9,6 @@ abstract class ScApplication : Application(), DependencyInjectionGraphOwner {
     @Suppress("LogNotTimber")
     override fun onCreate() {
         super.onCreate()
-        Log.v("SchildiNext", "Launch ${BuildConfig.APPLICATION_ID}, OIDC scheme is ${getString(R.string.login_redirect_scheme)} (upstream: ${getString(R.string.login_redirect_scheme_upstream)})")
+        Log.v("SloppyNext", "Launch ${BuildConfig.APPLICATION_ID}, OIDC scheme is ${getString(R.string.login_redirect_scheme)} (upstream: ${getString(R.string.login_redirect_scheme_upstream)})")
     }
 }
