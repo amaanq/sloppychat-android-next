@@ -232,6 +232,10 @@ class DefaultActionListPresenter(
             if (timelineItem.isRemote) {
                 add(TimelineItemAction.CopyLink)
             }
+            // SC: Copy MXC link for media messages
+            if (timelineItem.content is TimelineItemEventContentWithAttachment) {
+                add(TimelineItemAction.CopyMxcLink)
+            }
             if (isDeveloperModeEnabled) {
                 add(TimelineItemAction.ViewSource)
             }
