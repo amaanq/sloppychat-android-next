@@ -232,6 +232,14 @@ class DefaultActionListPresenter(
             if (timelineItem.isRemote) {
                 add(TimelineItemAction.CopyLink)
             }
+            // SC: Copy MXC link for media messages — only for already-uploaded media,
+            // never for local file:/// or content:// sources from a pending send.
+            if (timelineItem.isRemote &&
+                (timelineItem.content as? TimelineItemEventContentWithAttachment)
+                    ?.mediaSource?.safeUrl?.startsWith("mxc://") == true
+            ) {
+                add(TimelineItemAction.CopyMxcLink)
+            }
             if (isDeveloperModeEnabled) {
                 add(TimelineItemAction.ViewSource)
             }
