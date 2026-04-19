@@ -412,6 +412,7 @@ class MessagesPresenter(
             TimelineItemAction.CopyText -> handleCopyContents(targetEvent)
             TimelineItemAction.CopyCaption -> handleCopyCaption(targetEvent)
             TimelineItemAction.CopyLink -> handleCopyLink(targetEvent)
+            TimelineItemAction.CopyMxcLink -> handleCopyMxcLink(targetEvent) // SC
             TimelineItemAction.Redact -> handleActionRedact(targetEvent)
             TimelineItemAction.Edit,
             TimelineItemAction.EditPoll -> handleActionEdit(targetEvent, composerState, enableTextFormatting)
@@ -643,6 +644,15 @@ class MessagesPresenter(
         clipboardHelper.copyPlainText(content)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             snackbarDispatcher.post(SnackbarMessage(R.string.screen_room_timeline_message_copied))
+        }
+    }
+
+    // SC: Copy MXC link for media messages
+    private fun handleCopyMxcLink(event: TimelineItem.Event) {
+        val mxcUrl = (event.content as? TimelineItemEventContentWithAttachment)?.mediaSource?.safeUrl ?: return
+        clipboardHelper.copyPlainText(mxcUrl)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            snackbarDispatcher.post(SnackbarMessage(CommonStrings.common_copied_to_clipboard))
         }
     }
 

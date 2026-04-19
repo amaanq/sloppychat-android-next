@@ -23,6 +23,7 @@ enum class TimelineItemAction(
     CopyText(CommonStrings.action_copy_text, CompoundDrawables.ic_compound_copy),
     CopyCaption(CommonStrings.action_copy_caption, CompoundDrawables.ic_compound_copy),
     CopyLink(CommonStrings.action_copy_link_to_message, CompoundDrawables.ic_compound_link),
+    CopyMxcLink(chat.schildi.lib.R.string.sc_action_copy_mxc_link, CompoundDrawables.ic_compound_link), // SC
     Redact(CommonStrings.action_remove, CompoundDrawables.ic_compound_delete, destructive = true),
     Reply(CommonStrings.action_reply, CompoundDrawables.ic_compound_reply),
     ReplyInThread(CommonStrings.action_reply_in_thread, CompoundDrawables.ic_compound_reply),
