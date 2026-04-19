@@ -18,6 +18,7 @@ import androidx.compose.ui.res.vectorResource
 import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.safeLookup
+import chat.schildi.lib.preferences.settingState
 import chat.schildi.lib.preferences.value
 import chat.schildi.matrixsdk.ROOM_ACCOUNT_DATA_SPACE_ORDER
 import chat.schildi.matrixsdk.SpaceOrderSerializer
@@ -542,11 +543,12 @@ private fun List<SpaceOrphanCatcher>.flatten(): SpaceOrphanCatcher? {
 
 fun ScPreferencesStore.pseudoSpaceSettingsFlow(): Flow<SpaceListDataSource.PseudoSpaceSettings> {
     return combinedSettingFlow { lookup ->
+        val spaceNavActive = ScPrefs.SPACE_NAV.safeLookup(lookup) // SC
         SpaceListDataSource.PseudoSpaceSettings(
             favorites = ScPrefs.PSEUDO_SPACE_FAVORITES.safeLookup(lookup),
-            dms = ScPrefs.PSEUDO_SPACE_DMS.safeLookup(lookup),
+            dms = ScPrefs.PSEUDO_SPACE_DMS.safeLookup(lookup) || spaceNavActive, // SC: always include when drawer active
             groups = ScPrefs.PSEUDO_SPACE_GROUPS.safeLookup(lookup),
-            spacelessGroups = ScPrefs.PSEUDO_SPACE_SPACELESS_GROUPS.safeLookup(lookup),
+            spacelessGroups = ScPrefs.PSEUDO_SPACE_SPACELESS_GROUPS.safeLookup(lookup) || spaceNavActive, // SC: always include when drawer active
             spaceless = ScPrefs.PSEUDO_SPACE_SPACELESS.safeLookup(lookup),
             notifications = ScPrefs.PSEUDO_SPACE_NOTIFICATIONS.safeLookup(lookup),
             unread = ScPrefs.PSEUDO_SPACE_UNREAD.safeLookup(lookup),
@@ -587,9 +589,10 @@ fun List<SpaceListDataSource.AbstractSpaceHierarchyItem>.resolveSpaceName(select
 @Composable
 fun ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>.filterByUnread(
     selection: ImmutableList<String>?,
+    scPreferencesStore: ScPreferencesStore,
 ): ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem> {
     val currentSelection = selection?.firstOrNull()
-    return if (ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.value()) {
+    return if (scPreferencesStore.settingState(ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD).value) {
         filter { space -> space.selectionId == currentSelection || space.unreadCounts?.let { space.canHide(it) } != true }.toImmutableList()
     } else {
         this

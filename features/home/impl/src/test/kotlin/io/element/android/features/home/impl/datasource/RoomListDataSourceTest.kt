@@ -9,6 +9,7 @@
 package io.element.android.features.home.impl.datasource
 
 import app.cash.turbine.test
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import io.element.android.features.home.impl.FakeDateTimeObserver
 import io.element.android.libraries.androidutils.system.DateTimeObserver
@@ -271,6 +272,7 @@ class RoomListDataSourceTest {
         roomListRoomSummaryFactory = roomListRoomSummaryFactory,
         coroutineDispatchers = testCoroutineDispatchers(),
         notificationSettingsService = notificationSettingsService,
+        scPreferencesStore = PreviewScPreferencesStore,
         sessionCoroutineScope = backgroundScope,
         dateTimeObserver = dateTimeObserver,
         analyticsService = analyticsService,

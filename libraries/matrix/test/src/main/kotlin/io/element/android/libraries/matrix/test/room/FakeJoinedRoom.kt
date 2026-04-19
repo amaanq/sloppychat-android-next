@@ -117,12 +117,6 @@ class FakeJoinedRoom(
         editMessageLambda(eventId, body, htmlBody, intentionalMentions)
     }
 
-    // SC start
-    override suspend fun addSpaceChild(childId: RoomId): Result<Unit> = Result.success(Unit)
-    override suspend fun removeSpaceChild(childId: RoomId): Result<Unit> = Result.success(Unit)
-    override suspend fun setIsLowPriority(isLowPriority: Boolean): Result<Unit> = Result.success(Unit)
-    // SC end
-
     override suspend fun typingNotice(isTyping: Boolean): Result<Unit> = simulateLongTask {
         typingNoticeResult(isTyping)
     }
@@ -135,6 +129,8 @@ class FakeJoinedRoom(
         simulateSendMediaProgress(null)
         updateAvatarResult(mimeType, data)
     }
+
+    override suspend fun setAvatarUrl(url: String): Result<Unit> = Result.success(Unit)
 
     override suspend fun removeAvatar(): Result<Unit> = simulateLongTask {
         removeAvatarResult()
