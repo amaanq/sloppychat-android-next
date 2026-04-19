@@ -8,6 +8,7 @@
 
 package io.element.android.features.home.impl.filters
 
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import io.element.android.features.home.impl.filters.selection.DefaultFilterSelectionStrategy
 import io.element.android.features.home.impl.filters.selection.FilterSelectionState
@@ -98,5 +99,6 @@ private fun filterSelectionState(filter: RoomListFilter, selected: Boolean) = Fi
 private fun TestScope.createRoomListFiltersPresenter(): RoomListFiltersPresenter {
     return RoomListFiltersPresenter(
         filterSelectionStrategy = DefaultFilterSelectionStrategy(),
+        scPreferencesStore = PreviewScPreferencesStore,
     )
 }

@@ -8,6 +8,7 @@
 
 package io.element.android.features.home.impl.model
 
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import io.element.android.libraries.designsystem.components.avatar.AvatarData
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
@@ -24,7 +25,7 @@ class RoomListBaseRoomSummaryTest {
             isMarkedUnread = false,
         )
         assertThat(sut.isHighlighted).isFalse()
-        assertThat(sut.hasNewContent).isFalse()
+        assertThat(sut.hasNewContent(PreviewScPreferencesStore)).isFalse()
     }
 
     @Test
@@ -33,7 +34,7 @@ class RoomListBaseRoomSummaryTest {
             userDefinedNotificationMode = RoomNotificationMode.MUTE,
         )
         assertThat(sut.isHighlighted).isFalse()
-        assertThat(sut.hasNewContent).isFalse()
+        assertThat(sut.hasNewContent(PreviewScPreferencesStore)).isFalse()
     }
 
     @Test
@@ -43,7 +44,7 @@ class RoomListBaseRoomSummaryTest {
             userDefinedNotificationMode = RoomNotificationMode.MUTE,
         )
         assertThat(sut.isHighlighted).isTrue()
-        assertThat(sut.hasNewContent).isTrue()
+        assertThat(sut.hasNewContent(PreviewScPreferencesStore)).isTrue()
     }
 
     @Test
@@ -53,7 +54,7 @@ class RoomListBaseRoomSummaryTest {
             userDefinedNotificationMode = RoomNotificationMode.MUTE,
         )
         assertThat(sut.isHighlighted).isFalse()
-        assertThat(sut.hasNewContent).isTrue()
+        assertThat(sut.hasNewContent(PreviewScPreferencesStore)).isTrue()
     }
 
     @Test
@@ -62,7 +63,7 @@ class RoomListBaseRoomSummaryTest {
             isMarkedUnread = true,
         )
         assertThat(sut.isHighlighted).isTrue()
-        assertThat(sut.hasNewContent).isTrue()
+        assertThat(sut.hasNewContent(PreviewScPreferencesStore)).isTrue()
     }
 
     @Test
@@ -71,7 +72,7 @@ class RoomListBaseRoomSummaryTest {
             displayType = RoomSummaryDisplayType.INVITE,
         )
         assertThat(sut.isHighlighted).isFalse()
-        assertThat(sut.hasNewContent).isFalse()
+        assertThat(sut.hasNewContent(PreviewScPreferencesStore)).isFalse()
     }
 }
 
