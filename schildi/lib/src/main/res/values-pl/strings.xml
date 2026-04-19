@@ -2,7 +2,7 @@
 <resources>
     <string name="sc_action_apply">Zastosuj</string>
     <string name="sc_action_low_priority">Niski protytet</string>
-    <string name="sc_onboarding_welcome_title">Witamy w SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Witamy w SloppyChat</string>
     <string name="sc_onboarding_welcome_summary">Wprowadzenie żółwi do Matrix</string>
     <string name="sc_pref_tweaks_title">Żółwie sztuczki</string>
     <string name="sc_pref_sc_themes_title">Motyw SC</string>

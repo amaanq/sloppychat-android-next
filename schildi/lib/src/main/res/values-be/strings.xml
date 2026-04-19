@@ -2,7 +2,7 @@
 <resources>
     <string name="sc_action_apply">Прымяніць</string>
     <string name="sc_action_low_priority">Нізкі прыярытэт</string>
-    <string name="sc_onboarding_welcome_title">Вітаем у SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Вітаем у SloppyChat</string>
     <string name="sc_onboarding_welcome_summary">Прыўносім чарапах у Matrix</string>
     <string name="sc_pref_tweaks_title">Чарапахавы налады</string>
     <string name="sc_pref_sc_themes_title">Тэма SC</string>
