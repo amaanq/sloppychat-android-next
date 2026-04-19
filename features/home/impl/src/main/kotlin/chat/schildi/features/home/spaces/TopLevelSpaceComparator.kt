@@ -27,7 +27,7 @@ object SpaceComparator : Comparator<SpaceListDataSource.SpaceHierarchyItem> {
         } else {
             if (leftOrder == null) {
                 if (rightOrder == null) {
-                    // Spec says to fallback to roomId, but we at SchildiChat find lowercase names more suitable
+                    // Spec says to fallback to roomId, but we at SloppyChat find lowercase names more suitable
                     //compareValues(left?.info?.roomId?.value, right?.info?.roomId?.value)
                     compareValues(left?.info?.name?.lowercase(), right?.info?.name?.lowercase())
                 } else {

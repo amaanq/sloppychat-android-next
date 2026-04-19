@@ -2,14 +2,14 @@
 <resources>
     <string name="sc_action_apply">تطبيق</string>
     <string name="sc_action_low_priority">اولوية منخفضة</string>
-    <string name="sc_onboarding_welcome_title">مرحبا في تطبيق SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">مرحبا في تطبيق SloppyChat</string>
     <string name="sc_onboarding_welcome_summary">إدخال السلاحف إلى بروتكول ماتريكس</string>
-    <string name="sc_pref_tweaks_title">اعدادات تطبيق SchildiChat</string>
+    <string name="sc_pref_tweaks_title">اعدادات تطبيق SloppyChat</string>
     <string name="sc_pref_sc_themes_title">مظهر SC</string>
     <string name="sc_pref_sc_themes_summary">تعطيل إتّباع مظهر تطبيق Element.</string>
-    <string name="sc_pref_sc_layout_title">مخطط تطبيق SchildiChat</string>
+    <string name="sc_pref_sc_layout_title">مخطط تطبيق SloppyChat</string>
     <string name="sc_pref_sc_layout_summary">تعطيل إتّباع مخطط تطبيق Element.</string>
-    <string name="sc_pref_sc_overview_layout_title">نظرة عامة على مخطط تطبيق SchildiChat</string>
+    <string name="sc_pref_sc_overview_layout_title">نظرة عامة على مخطط تطبيق SloppyChat</string>
     <string name="sc_pref_sc_timeline_layout_title">مخطط محادثة تطبيق SC</string>
     <string name="sc_pref_sc_floating_date_title">التاريخ العائم</string>
     <string name="sc_pref_sc_floating_date_summary">اعرض التاريخ أعلى الرسائل أثناء التمرير</string>

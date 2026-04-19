@@ -53,7 +53,7 @@ dependencyResolutionManagement {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "SchildiNext"
+rootProject.name = "SloppyNext"
 include(":app")
 include(":appnav")
 include(":appconfig")

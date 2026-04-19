@@ -7,7 +7,7 @@
     <string name="sc_pref_sc_timeline_layout_title">SC sarunu izkārtojums</string>
     <string name="sc_pref_sc_floating_date_title">Peldošs datums</string>
     <string name="sc_pref_pl_display_name_title">Vārdu krāsas pēc spēka līmeņa</string>
-    <string name="sc_onboarding_welcome_title">Laipni lūdzam SchildiChat!</string>
+    <string name="sc_onboarding_welcome_title">Laipni lūdzam SloppyChat!</string>
     <string name="sc_action_mark_as_unread">Atzīmēt ka nelasītu</string>
     <string name="sc_pref_screen_experimental_title">Izmēģinājuma</string>
     <string name="sc_onboarding_welcome_summary">Ievedam bruņurupučus Matrix</string>

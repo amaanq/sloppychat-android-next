@@ -1,5 +1,5 @@
 {
-  description = "SchildiChat Next - Matrix client for Android";
+  description = "SloppyChat Next - Matrix client for Android";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -59,7 +59,7 @@
             shellHook = ''
               echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
               echo ""
-              echo "SchildiChat Next Development Shell"
+              echo "SloppyChat Next Development Shell"
               echo "  JDK:         $(java -version 2>&1 | head -1)"
               echo "  Android SDK: $ANDROID_SDK_ROOT"
               echo ""
