@@ -6,7 +6,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-rootProject.name = "SchildiNext_plugins"
+rootProject.name = "SloppyNext_plugins"
 
 dependencyResolutionManagement {
     repositories {
