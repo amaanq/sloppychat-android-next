@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="sc_onboarding_welcome_title">Bienvenido a SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Bienvenido a SloppyChat</string>
     <string name="sc_action_apply">Aplicar</string>
     <string name="sc_onboarding_welcome_summary">Trayendo tortugas a la Matrix</string>
     <string name="sc_pref_sc_themes_title">SC Diseño</string>

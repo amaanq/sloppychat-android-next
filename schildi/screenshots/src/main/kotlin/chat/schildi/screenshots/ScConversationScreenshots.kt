@@ -69,7 +69,7 @@ open class ScScreenshotMessagesStateProvider : PreviewParameterProvider<Messages
                         aTimelineItemDaySeparator(),
                         aTimelineItemEvent(
                             user = me,
-                            content = aTimelineItemTextContent("Now, what is this SchildiChat? Can somebody explain?"),
+                            content = aTimelineItemTextContent("Now, what is this SloppyChat? Can somebody explain?"),
                             groupPosition = TimelineItemGroupPosition.None,
                             sentTime = "8:50",
                         ),
@@ -90,7 +90,7 @@ open class ScScreenshotMessagesStateProvider : PreviewParameterProvider<Messages
                         ),
                         aTimelineItemEvent(
                             user = bob,
-                            content = aTimelineItemTextContent("Ah moment, it's based on Element X, the Matrix messenger. SchildiChat adds some nice features and UI changes to it 😉"),
+                            content = aTimelineItemTextContent("Ah moment, it's based on Element X, the Matrix messenger. SloppyChat adds some nice features and UI changes to it 😉"),
                             groupPosition = TimelineItemGroupPosition.Last,
                             sentTime = "12:17",
                             /*

@@ -43,7 +43,7 @@
     <string name="sc_pref_category_general_behaviour">Správanie</string>
     <string name="sc_pref_category_chat_overview">Prehľad rozhovoru</string>
     <string name="sc_pref_category_spaces">Priestory</string>
-    <string name="sc_onboarding_welcome_title">Vitajte v SchildiChate</string>
+    <string name="sc_onboarding_welcome_title">Vitajte v SloppyChate</string>
     <string name="sc_onboarding_welcome_summary">Prinášame korytnačky do Matrixu</string>
     <string name="sc_pref_sc_floating_date_summary">Pri rolovaní, zobraziť dátum nad správami</string>
     <string name="sc_sync_read_receipt_and_marker_title">Udržiavať značku neprečítaných a prijatých v súlade</string>
