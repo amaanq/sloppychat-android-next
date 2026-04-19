@@ -11,6 +11,7 @@ package io.element.android.features.home.impl.filters
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import chat.schildi.lib.preferences.ScPreferencesStore
 import dev.zacsweers.metro.Inject
 import io.element.android.features.home.impl.filters.selection.FilterSelectionStrategy
 import io.element.android.libraries.architecture.Presenter
@@ -19,6 +20,7 @@ import kotlinx.collections.immutable.toImmutableList
 @Inject
 class RoomListFiltersPresenter(
     private val filterSelectionStrategy: FilterSelectionStrategy,
+    private val scPreferencesStore: ScPreferencesStore,
 ) : Presenter<RoomListFiltersState> {
     @Composable
     override fun present(): RoomListFiltersState {
@@ -33,7 +35,7 @@ class RoomListFiltersPresenter(
             }
         }
 
-        ScClearRoomFiltersEffect(filterSelectionStrategy)
+        ScClearRoomFiltersEffect(filterSelectionStrategy, scPreferencesStore)
 
         val filters by filterSelectionStrategy.filterSelectionStates.collectAsState()
         return RoomListFiltersState(

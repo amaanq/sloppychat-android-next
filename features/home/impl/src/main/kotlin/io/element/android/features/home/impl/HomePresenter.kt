@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import chat.schildi.features.home.spaces.SpaceListDataSource
 import dev.zacsweers.metro.Inject
 import io.element.android.features.home.impl.roomlist.RoomListState
 import io.element.android.features.home.impl.spaces.HomeSpacesState
@@ -42,7 +41,6 @@ class HomePresenter(
     private val snackbarDispatcher: SnackbarDispatcher,
     private val indicatorService: IndicatorService,
     private val roomListPresenter: Presenter<RoomListState>,
-    val spaceListDataSource: SpaceListDataSource,
     private val homeSpacesPresenter: Presenter<HomeSpacesState>,
     private val logoutPresenter: Presenter<DirectLogoutState>,
     private val rageshakeFeatureAvailability: RageshakeFeatureAvailability,

@@ -8,6 +8,7 @@
 
 package io.element.android.features.messages.impl
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -33,16 +34,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.onSizeChanged
@@ -61,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.theme.ScTheme
+import io.element.android.features.messages.impl.spacedrawer.ChatSpaceDrawerContent
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.location.api.LiveLocationSharingBanner
@@ -134,6 +141,7 @@ import io.element.android.libraries.matrix.ui.media.contentvalidation.LocalEvent
 import io.element.android.libraries.textcomposer.model.TextEditorState
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.wysiwyg.link.Link
+import kotlinx.coroutines.launch
 import kotlinx.collections.immutable.persistentListOf
 import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
@@ -220,6 +228,18 @@ fun MessagesView(
     }
 
     val syncReadMarkerAndReceipt = ScPrefs.SYNC_READ_RECEIPT_AND_MARKER.value()
+
+    // SC: Chat space drawer wrapping the entire messages layout
+    val chatDrawerEnabled = state.chatSpaceDrawerState.enabled
+    val chatDrawerState = rememberDrawerState(DrawerValue.Closed)
+    val chatDrawerScope = rememberCoroutineScope()
+
+    // SC: Close drawer on back gesture/press
+    BackHandler(enabled = chatDrawerEnabled && chatDrawerState.isOpen) {
+        chatDrawerScope.launch { chatDrawerState.close() }
+    }
+
+    val mainContent = @Composable {
 
     val expandableState = rememberExpandableBottomSheetLayoutState()
     ExpandableBottomSheetLayout(
@@ -399,6 +419,34 @@ fun MessagesView(
         },
         maxBottomSheetContentHeight = maxComposerHeightPx.toDp(),
     )
+
+    } // end mainContent lambda // SC
+
+    // SC: Wrap main content in drawer when enabled.
+    // clipToBounds prevents the offscreen drawer content from becoming visible
+    // during Appyx navigation transitions (slide-in/slide-out).
+    if (chatDrawerEnabled) {
+        ModalNavigationDrawer(
+            drawerState = chatDrawerState,
+            gesturesEnabled = true,
+            modifier = Modifier.clipToBounds(),
+            drawerContent = {
+                ChatSpaceDrawerContent(
+                    state = state.chatSpaceDrawerState,
+                    onRoomClick = { roomId ->
+                        // Close immediately so the drawer never lingers if the navigation
+                        // is a same-room no-op or fails downstream.
+                        chatDrawerScope.launch { chatDrawerState.close() }
+                        state.eventSink(MessagesEvent.NavigateToRoom(roomId))
+                    },
+                )
+            },
+        ) {
+            mainContent()
+        }
+    } else {
+        mainContent()
+    }
 
     var endPollConfirmingEvent: TimelineItem.Event? by remember { mutableStateOf(null) }
 
