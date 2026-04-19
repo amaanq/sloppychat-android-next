@@ -23,7 +23,7 @@
     <string name="sc_pref_el_typography_summary">Использовать настройки шрифта из Element с увеличенным размером текста сообщений</string>
     <string name="sc_pref_compact_app_bar_summary">Никогда не раскрывать верхнюю панель приложения</string>
     <string name="sc_pref_sc_layout_title">SC компановка</string>
-    <string name="sc_onboarding_welcome_title">Добро пожаловать в SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Добро пожаловать в SloppyChat</string>
     <string name="sc_pref_sc_themes_summary">Отключите, чтобы использовать тему из Element.</string>
     <string name="sc_space_unread_counts_mode_title">Общее количество непрочитанных</string>
     <string name="sc_pref_sc_timeline_layout_title">SC компановка беседы</string>

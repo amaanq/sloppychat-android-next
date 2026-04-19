@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="sc_pref_category_timeline">Obrazovka konverzace</string>
-    <string name="sc_onboarding_welcome_title">Vítejte v SchildiChatu</string>
+    <string name="sc_onboarding_welcome_title">Vítejte v SloppyChatu</string>
     <string name="sc_onboarding_welcome_summary">Přináší želvy do Matrixu</string>
     <string name="sc_pref_tweaks_title">Želví vylepšení</string>
     <string name="sc_pref_sc_themes_title">SC téma</string>

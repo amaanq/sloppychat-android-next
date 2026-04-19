@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="sc_action_low_priority">Baixa prioridade</string>
-    <string name="sc_onboarding_welcome_title">Boas-vindas ao SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Boas-vindas ao SloppyChat</string>
     <string name="sc_onboarding_welcome_summary">Trazendo tartarugas para a Matrix</string>
     <string name="sc_pref_tweaks_title">Ajustes da tartaruga</string>
     <string name="sc_pref_sc_themes_title">Tema do SC</string>

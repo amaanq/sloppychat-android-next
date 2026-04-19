@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         // applicationId = BuildTimeConfig.APPLICATION_ID
-        applicationId = "chat.schildi.android"
+        applicationId = "chat.sloppy.android"
         versionCode = 1150
         versionName = "0.11.0-ex_26_3_3"
         targetSdk = Versions.TARGET_SDK
@@ -249,33 +249,33 @@ android {
         // SC variants for different release tracks. Cannot do actual release types for those since fdroid build tools always want `release` builds.
         create("default") {
             dimension = "sc-variant"
-            applicationId = "chat.schildi.android"
+            applicationId = "chat.sloppy.android"
             isDefault = true
-            resValue("string", "sc_app_name", "SchildiChat Next")
-            resValue("string", "sc_app_name_launcher", "SchildiNext")
+            resValue("string", "sc_app_name", "SloppyChat Next")
+            resValue("string", "sc_app_name_launcher", "SloppyNext")
         }
         create("beta") {
             dimension = "sc-variant"
-            applicationId = "chat.schildi.next"
-            resValue("string", "sc_app_name", "SchildiChat Next (Beta)")
-            resValue("string", "sc_app_name_launcher", "SchildiNext β")
+            applicationId = "chat.sloppy.next"
+            resValue("string", "sc_app_name", "SloppyChat Next (Beta)")
+            resValue("string", "sc_app_name_launcher", "SloppyNext β")
         }
         create("internal") {
             dimension = "sc-variant"
-            applicationId = "chat.schildi.next.internal"
-            resValue("string", "sc_app_name", "SchildiChat Next (Internal)")
-            resValue("string", "sc_app_name_launcher", "SchildiNext[i]")
+            applicationId = "chat.sloppy.next.internal"
+            resValue("string", "sc_app_name", "SloppyChat Next (Internal)")
+            resValue("string", "sc_app_name_launcher", "SloppyNext[i]")
         }
     }
     // Build types to override some more upstream values
     buildTypes {
         named("debug") {
-            resValue("string", "app_name", "SchildiChat Next dbg")
+            resValue("string", "app_name", "SloppyChat Next dbg")
             buildConfigField("String", "SC_VERSION_MAIN", "\"$scVersionMain\"")
             buildConfigField("String", "SC_VERSION_ELEMENT", "\"${Versions.VERSION_NAME}\"")
         }
         named("release") {
-            resValue("string", "app_name", "SchildiChat Next")
+            resValue("string", "app_name", "SloppyChat Next")
             buildConfigField("String", "SC_VERSION_MAIN", "\"$scVersionMain\"")
             buildConfigField("String", "SC_VERSION_ELEMENT", "\"${Versions.VERSION_NAME}\"")
         }

@@ -64,7 +64,7 @@
     <string name="sc_freeform_reaction">Реакції вільної форми</string>
     <string name="sc_recent_reaction">Часто використовується</string>
     <string name="sc_upstream_feature_flag_room_list_filters">Фільтри списку кімнат</string>
-    <string name="sc_onboarding_welcome_title">Вітаю у SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Вітаю у SloppyChat</string>
     <string name="sc_onboarding_welcome_summary">Введення черепах у Matrix</string>
     <string name="sc_pref_tweaks_title">Налаштування черепахи</string>
     <string name="sc_sync_read_receipt_and_marker_summary">Завжди встановлювати маркер прочитаних повідомлень (те, що бачать інші, і те, що підраховує кількість ваших непрочитаних повідомлень) на те саме повідомлення, що і маркер повністю прочитаних повідомлень (рядок нових повідомлень при перегляді чату)</string>

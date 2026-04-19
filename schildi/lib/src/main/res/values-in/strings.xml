@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="sc_onboarding_welcome_title">Selamat datang di SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Selamat datang di SloppyChat</string>
     <string name="sc_onboarding_welcome_summary">Membawa kura-kura ke dalam Matrix</string>
     <string name="sc_pref_tweaks_title">Pengaturan kura-kura</string>
     <string name="sc_pref_sc_themes_title">Tema SC</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="sc_pref_tweaks_title">Schildi Extras</string>
+    <string name="sc_pref_tweaks_title">Sloppy Extras</string>
     <string name="sc_pref_restore_defaults">Standardwerte wiederherstellen</string>
     <string name="sc_pref_restore_authors_choice">Wahl des Autors</string>
     <string name="sc_push_info_title">Push-Info</string>
@@ -15,7 +15,7 @@
     <string name="sc_client_generated_unread_counts_summary">Berechne die Anzahl ungelesener Nachrichten auf dem Gerät, anstatt den vom Server gemeldeten Werten zu vertrauen</string>
     <string name="sc_pref_category_general_appearance">Erscheinungsbild</string>
     <string name="sc_pref_screen_experimental_title">Experimentell</string>
-    <string name="sc_onboarding_welcome_title">Willkommen bei SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Willkommen bei SloppyChat</string>
     <string name="sc_space_unread_counts_mode_hide">Verstecken</string>
     <string name="sc_pref_sc_layout_title">SC Layout</string>
     <string name="sc_pref_sc_floating_date_title">Schwebendes Datum</string>
