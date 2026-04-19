@@ -393,6 +393,7 @@ internal fun HomeTopBarPreview() = ElementPreview {
         filtersState = aRoomListFiltersState(),
         spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
+        onMarkAllAsRead = {}, // SC
     )
 }
 

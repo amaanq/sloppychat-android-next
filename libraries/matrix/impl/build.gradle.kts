@@ -23,12 +23,11 @@ setupDependencyInjection()
 dependencies {
     implementation(projects.schildi.matrixsdk)
     implementation(projects.schildi.lib)
-    releaseImplementation(libs.matrix.sdk)
     if (file("${rootDir.path}/libraries/rustsdk/matrix-rust-sdk.aar").exists()) {
         println("\nNote: Using local binary of the Rust SDK.\n")
-        debugImplementation(projects.libraries.rustsdk)
+        implementation(projects.libraries.rustsdk)
     } else {
-        debugImplementation(libs.matrix.sdk)
+        implementation(libs.matrix.sdk)
     }
     implementation(files("libs/rustls-platform-verifier-android.aar"))
 
