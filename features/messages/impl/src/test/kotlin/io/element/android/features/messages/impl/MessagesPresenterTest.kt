@@ -1393,6 +1393,7 @@ class MessagesPresenterTest {
             scPreferencesStore = FakeScPreferencesStore, // SC
             imagePackService = ImagePackService(ImagePackRepository(FakeMatrixClient())), // SC
             roomListService = roomListService, // SC
+            isPeek = false, // SC
             sessionCoroutineScope = backgroundScope,
         )
     }

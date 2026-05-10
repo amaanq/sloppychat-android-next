@@ -67,9 +67,6 @@ import io.element.android.features.messages.impl.timeline.model.NewEventState
 import io.element.android.features.messages.impl.timeline.model.TimelineItem
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemEventContent
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemEventContentProvider
-import io.element.android.features.messages.impl.timeline.model.event.TimelineItemProfileChangeContent
-import io.element.android.features.messages.impl.timeline.model.event.TimelineItemRoomMembershipContent
-import io.element.android.features.messages.impl.timeline.model.event.TimelineItemStateEventContent // SC
 import io.element.android.features.messages.impl.timeline.protection.TimelineProtectionState
 import io.element.android.features.messages.impl.timeline.protection.aTimelineProtectionState
 import io.element.android.libraries.androidutils.system.copyToClipboard
@@ -136,39 +133,9 @@ fun TimelineView(
     // Disable reverse layout when TalkBack is enabled to avoid incorrect ordering issues seen in the current Compose UI version
     val useReverseLayout = !isTalkbackActive()
 
-    // SC: Hide membership events and state events
-    val hideMembershipEvents = ScPrefs.HIDE_MEMBERSHIP_EVENTS.value()
-    val viewHiddenEvents = ScPrefs.VIEW_HIDDEN_EVENTS.value() // SC
-    val timelineItems = remember(state.timelineItems, hideMembershipEvents, viewHiddenEvents) {
-        if (!hideMembershipEvents && viewHiddenEvents) {
-            state.timelineItems // No filtering needed
-        } else {
-            state.timelineItems.mapNotNull { item ->
-                when (item) {
-                    is TimelineItem.Event -> {
-                        val shouldHide = // SC
-                            (hideMembershipEvents && (item.content is TimelineItemRoomMembershipContent || item.content is TimelineItemProfileChangeContent))
-                            || (!viewHiddenEvents && item.content is TimelineItemStateEventContent) // SC
-                        if (shouldHide) null else item
-                    }
-                    is TimelineItem.GroupedEvents -> {
-                        val filtered = item.events.filter { event ->
-                            val shouldHide = // SC
-                                (hideMembershipEvents && (event.content is TimelineItemRoomMembershipContent || event.content is TimelineItemProfileChangeContent))
-                                || (!viewHiddenEvents && event.content is TimelineItemStateEventContent) // SC
-                            !shouldHide
-                        }
-                        when {
-                            filtered.isEmpty() -> null
-                            filtered.size == item.events.size -> item
-                            else -> item.copy(events = filtered.toImmutableList())
-                        }
-                    }
-                    else -> item
-                }
-            }.toImmutableList()
-        }
-    }
+    // SC: Hidden-events filtering moved into TimelinePresenter so that read receipts,
+    // focus indices, and rendered indices all share one coordinate system.
+    val timelineItems = state.timelineItems
 
     fun onScrollFinishAt(firstVisibleIndex: Int, visibleItemCount: Int) {
         state.eventSink(TimelineEvent.OnScrollFinished(firstVisibleIndex))

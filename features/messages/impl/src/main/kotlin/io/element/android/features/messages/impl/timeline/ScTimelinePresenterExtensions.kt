@@ -10,12 +10,16 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import io.element.android.features.messages.impl.timeline.model.TimelineItem
+import io.element.android.features.messages.impl.timeline.model.event.TimelineItemProfileChangeContent
+import io.element.android.features.messages.impl.timeline.model.event.TimelineItemRoomMembershipContent
+import io.element.android.features.messages.impl.timeline.model.event.TimelineItemStateEventContent
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -82,4 +86,39 @@ private fun getLastEventIdBeforeOrAt(index: Int, items: ImmutableList<TimelineIt
 }
 
 internal fun Int.offsetForUnreadMarkerFocus(forUnreadMarker: Boolean) = if (forUnreadMarker) (this - 1).coerceAtLeast(0) else this
+
+/**
+ * Drop membership/profile-change rows when [hideMembership] is on, and drop generic
+ * state-event rows when [viewHidden] is off. Applied in TimelinePresenter so that the
+ * indexer, focus, OnScrollFinished receipt lookup, and view rendering all share the
+ * same item indices.
+ */
+fun ImmutableList<TimelineItem>.filterForScHiddenEvents(
+    hideMembership: Boolean,
+    viewHidden: Boolean,
+): ImmutableList<TimelineItem> {
+    if (!hideMembership && viewHidden) return this
+    return mapNotNull { item ->
+        when (item) {
+            is TimelineItem.Event -> {
+                if (item.shouldHide(hideMembership, viewHidden)) null else item
+            }
+            is TimelineItem.GroupedEvents -> {
+                val kept = item.events.filter { !it.shouldHide(hideMembership, viewHidden) }
+                when {
+                    kept.isEmpty() -> null
+                    kept.size == item.events.size -> item
+                    else -> item.copy(events = kept.toImmutableList())
+                }
+            }
+            else -> item
+        }
+    }.toImmutableList()
+}
+
+private fun TimelineItem.Event.shouldHide(hideMembership: Boolean, viewHidden: Boolean): Boolean {
+    if (hideMembership && (content is TimelineItemRoomMembershipContent || content is TimelineItemProfileChangeContent)) return true
+    if (!viewHidden && content is TimelineItemStateEventContent) return true
+    return false
+}
 

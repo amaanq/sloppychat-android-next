@@ -113,13 +113,14 @@ class ThreadedMessagesNode(
         return presenterFactory.create(
             navigator = this,
             composerPresenter = messageComposerPresenterFactory.create(timelineController, this, isInThread = true),
-            timelinePresenter = timelinePresenterFactory.create(timelineController = timelineController, this),
+            timelinePresenter = timelinePresenterFactory.create(timelineController = timelineController, this, isPeek = false), // SC: threads do not peek
             // TODO add special processor for threaded timeline
             actionListPresenter = actionListPresenterFactory.create(
                 postProcessor = TimelineItemActionPostProcessor.Default,
                 timelineMode = timelineController.mainTimelineMode(),
             ),
             timelineController = timelineController,
+            isPeek = false, // SC
         )
     }
 

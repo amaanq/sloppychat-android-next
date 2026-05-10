@@ -33,7 +33,7 @@ class FakeAppNavigationStateService(
     override fun onNavigateToSession(owner: String, sessionId: SessionId) = Unit
     override fun onLeavingSession(owner: String) = Unit
 
-    override fun onNavigateToRoom(owner: String, roomId: RoomId) = Unit
+    override fun onNavigateToRoom(owner: String, roomId: RoomId, peek: Boolean) = Unit
     override fun onLeavingRoom(owner: String) = Unit
 
     override fun onNavigateToThread(owner: String, threadId: ThreadId) = Unit

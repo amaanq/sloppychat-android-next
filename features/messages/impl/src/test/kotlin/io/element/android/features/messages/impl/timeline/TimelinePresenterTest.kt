@@ -1030,6 +1030,7 @@ class TimelinePresenterTest {
             roomCallStatePresenter = { aStandByCallState() },
             featureFlagService = featureFlagService,
             analyticsService = FakeAnalyticsService(),
+            isPeek = false,
         )
     }
 }

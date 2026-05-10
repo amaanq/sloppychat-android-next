@@ -45,7 +45,7 @@ class DefaultHomeEntryPointTest {
             )
         }
         val callback = object : HomeEntryPoint.Callback {
-            override fun navigateToRoom(roomId: RoomId, joinedRoom: JoinedRoom?) = lambdaError()
+            override fun navigateToRoom(roomId: RoomId, joinedRoom: JoinedRoom?, peek: Boolean) = lambdaError()
             override fun navigateToCreateRoom() = lambdaError()
             override fun navigateToCreateSpace() = lambdaError()
             override fun navigateToSettings() = lambdaError()

@@ -92,6 +92,7 @@ class TimelinePresenter(
     private val endPollAction: EndPollAction,
     private val sessionPreferencesStore: SessionPreferencesStore,
     @Assisted private val timelineController: TimelineController,
+    @Assisted private val isPeek: Boolean, // SC: when true, suppress read receipt + fully-read marker side effects
     private val timelineItemIndexer: TimelineItemIndexer = TimelineItemIndexer(),
     private val resolveVerifiedUserSendFailurePresenter: Presenter<ResolveVerifiedUserSendFailureState>,
     private val typingNotificationPresenter: Presenter<TypingNotificationState>,
@@ -105,7 +106,8 @@ class TimelinePresenter(
     interface Factory {
         fun create(
             timelineController: TimelineController,
-            navigator: MessagesNavigator
+            navigator: MessagesNavigator,
+            isPeek: Boolean, // SC
         ): TimelinePresenter
     }
 
@@ -153,6 +155,11 @@ class TimelinePresenter(
         // SC start
         val syncReadReceiptAndMarker = ScPrefs.SYNC_READ_RECEIPT_AND_MARKER.state()
         val context = LocalContext.current
+        // Hidden-events prefs drive the timeline filter. We mirror them into a State so
+        // the items-collection LaunchedEffect below can re-filter when the user toggles them
+        // without leaving the room.
+        val hideMembership = ScPrefs.HIDE_MEMBERSHIP_EVENTS.state()
+        val viewHidden = ScPrefs.VIEW_HIDDEN_EVENTS.state()
         // SC end
 
         val displayThreadSummaries by produceState(false) {
@@ -166,7 +173,7 @@ class TimelinePresenter(
             when (event) {
                 // SC start
                 is TimelineEvent.OnUnreadLineVisible -> timelineController.scReadState.sawUnreadLine.value = true
-                is TimelineEvent.MarkAsRead -> forceSetReceipts(context, sessionCoroutineScope, room, timelineController.scReadState, isSendPublicReadReceiptsEnabled)
+                is TimelineEvent.MarkAsRead -> if (!isPeek) forceSetReceipts(context, sessionCoroutineScope, room, timelineController.scReadState, isSendPublicReadReceiptsEnabled)
                 // SC end
                 is TimelineEvent.LoadMore -> {
                     if (event.direction == Timeline.PaginationDirection.FORWARDS && timelineMode is Timeline.Mode.Thread) {
@@ -181,6 +188,10 @@ class TimelinePresenter(
                     if (isLive) {
                         if (event.firstIndex == 0) {
                             newEventState.value = NewEventState.None
+                        }
+
+                        if (isPeek) { // SC: peek mode — never advance receipts/markers
+                            return
                         }
 
                         if (syncReadReceiptAndMarker.value) { // SC block
@@ -262,11 +273,18 @@ class TimelinePresenter(
             }
         }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(hideMembership.value, viewHidden.value) {
             timelineItemsFactory.timelineItems
                 .onEach { newTimelineItems ->
-                    timelineItemIndexer.process(newTimelineItems)
-                    timelineItems = newTimelineItems
+                    // SC: Apply the hidden-events filter once, here at the source, so that
+                    // every downstream consumer (indexer, focus, OnScrollFinished receipt
+                    // lookup, view rendering) shares one set of indices.
+                    val filtered = newTimelineItems.filterForScHiddenEvents(
+                        hideMembership = hideMembership.value,
+                        viewHidden = viewHidden.value,
+                    )
+                    timelineItemIndexer.process(filtered)
+                    timelineItems = filtered
 
                     analyticsService.run {
                         finishLongRunningTransaction(DisplayFirstTimelineItems)
