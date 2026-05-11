@@ -44,8 +44,8 @@ android {
     defaultConfig {
         // applicationId = BuildTimeConfig.APPLICATION_ID
         applicationId = "chat.sloppy.android"
-        versionCode = 1180
-        versionName = "0.11.1-ex_26_4_4"
+        versionCode = 1183
+        versionName = "0.11.4-ex_26_4_4"
         targetSdk = Versions.TARGET_SDK
 
         // Keep abiFilter for the universalApk
@@ -124,15 +124,24 @@ android {
     // SC: refuse to ship a release-signed artifact unless we actually have the release keystore.
     // Without this, a CI run that lost its keystore secret would silently produce a debug-signed
     // APK that can't update over real installs.
-    val releaseKeystoreExists = file(System.getenv("SC_RELEASE_KEYSTORE_PATH") ?: "./signature/release.keystore").exists()
-    val isReleaseTaskRequested = gradle.startParameter.taskNames.any { name ->
-        name.contains("Release", ignoreCase = false) && !name.contains("UnitTest") && !name.contains("AndroidTest")
-    }
-    if (isReleaseTaskRequested && !releaseKeystoreExists) {
-        error(
-            "Release task requested (${gradle.startParameter.taskNames}) but the release keystore is missing. " +
-            "Set SC_RELEASE_KEYSTORE_PATH or place the keystore at app/signature/release.keystore."
-        )
+    //
+    // Attach the guard to each release variant's package task so aggregate
+    // tasks (assemble, build, bundle) that resolve to release variants still
+    // trigger the check — checking startParameter.taskNames alone misses those
+    // because "assemble" doesn't contain "Release".
+    val releaseKeystoreFile = file(System.getenv("SC_RELEASE_KEYSTORE_PATH") ?: "./signature/release.keystore")
+    androidComponents.onVariants(androidComponents.selector().withBuildType("release")) { variant ->
+        if (!releaseKeystoreFile.exists()) {
+            val capName = variant.name.replaceFirstChar { it.uppercase() }
+            tasks.matching { it.name == "package$capName" || it.name == "bundle$capName" }.configureEach {
+                doFirst {
+                    error(
+                        "Release variant ${variant.name} requested but the release keystore is missing at " +
+                        "${releaseKeystoreFile.path}. Set SC_RELEASE_KEYSTORE_PATH or place the keystore there."
+                    )
+                }
+            }
+        }
     }
 
     val baseAppName = BuildTimeConfig.APPLICATION_NAME
@@ -268,8 +277,8 @@ android {
         // Common upstream overrides across all sc variants - only one flavor for this dimension to ensure it's picked up!
         create("sc") {
             dimension = "package"
-            versionCode = 1180
-            versionName = "0.11.1-ex_26_4_4"
+            versionCode = 1183
+            versionName = "0.11.4-ex_26_4_4"
             isDefault = true
         }
         // SC variants for different release tracks. Cannot do actual release types for those since fdroid build tools always want `release` builds.
