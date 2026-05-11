@@ -32,6 +32,10 @@ sealed class NavigationState(open val owner: String) {
         override val owner: String,
         val roomId: RoomId,
         val parentSession: Session,
+        // SC: when true, the room is open in "peek" mode (read marker not advancing).
+        // Notification handling treats peek the same as the room not being foreground:
+        // existing notifications are preserved and incoming events still notify.
+        val peek: Boolean = false,
     ) : NavigationState(owner)
 
     data class Thread(

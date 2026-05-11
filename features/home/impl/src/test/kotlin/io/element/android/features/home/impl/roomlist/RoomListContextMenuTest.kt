@@ -132,13 +132,17 @@ class RoomListContextMenuTest : RobolectricTest() {
         canReportRoom: Boolean = false,
         eventSink: (RoomListEvent) -> Unit,
         onRoomSettingsClick: (RoomId) -> Unit = EnsureNeverCalledWithParam(),
+        onRoomPeekClick: (RoomId) -> Unit = EnsureNeverCalledWithParam(),
         onReportRoomClick: (RoomId) -> Unit = EnsureNeverCalledWithParam(),
     ) {
         setSafeContent {
             RoomListContextMenu(
                 contextMenu = contextMenu,
+                roomListState = aRoomListState(),
+                matrixClient = null,
                 canReportRoom = canReportRoom,
                 onRoomSettingsClick = onRoomSettingsClick,
+                onRoomPeekClick = onRoomPeekClick,
                 onReportRoomClick = onReportRoomClick,
                 eventSink = eventSink,
             )

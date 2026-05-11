@@ -8,7 +8,10 @@
 
 package io.element.android.features.messages.impl.timeline
 
+import android.content.Context
 import app.cash.turbine.ReceiveTurbine
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
+import chat.schildi.lib.preferences.ScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import io.element.android.features.location.test.FakeActiveLiveLocationShareManager
 import io.element.android.features.messages.impl.FakeMessagesNavigator
@@ -78,6 +81,7 @@ import io.element.android.tests.testutils.lambda.lambdaRecorder
 import io.element.android.tests.testutils.lambda.value
 import io.element.android.tests.testutils.test
 import io.element.android.tests.testutils.testCoroutineDispatchers
+import io.mockk.mockk
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -1576,11 +1580,13 @@ class TimelinePresenterTest {
                 roomPermissions = roomPermissions(),
             ),
         ),
+        context: Context = mockk(relaxed = true),
         redactedVoiceMessageManager: RedactedVoiceMessageManager = FakeRedactedVoiceMessageManager(),
         messagesNavigator: FakeMessagesNavigator = FakeMessagesNavigator(),
         endPollAction: EndPollAction = FakeEndPollAction(),
         sendPollResponseAction: SendPollResponseAction = FakeSendPollResponseAction(),
         sessionPreferencesStore: InMemorySessionPreferencesStore = InMemorySessionPreferencesStore(),
+        scPreferencesStore: ScPreferencesStore = PreviewScPreferencesStore,
         timelineItemIndexer: TimelineItemIndexer = TimelineItemIndexer(),
         featureFlagService: FakeFeatureFlagService = FakeFeatureFlagService(),
         liveLocationShareManager: FakeActiveLiveLocationShareManager = FakeActiveLiveLocationShareManager(),
@@ -1589,6 +1595,7 @@ class TimelinePresenterTest {
         return TimelinePresenter(
             timelineItemsFactoryCreator = aTimelineItemsFactoryCreator(),
             room = room,
+            context = context,
             dispatchers = testCoroutineDispatchers(),
             sessionCoroutineScope = this,
             navigator = messagesNavigator,
@@ -1596,6 +1603,7 @@ class TimelinePresenterTest {
             endPollAction = endPollAction,
             sendPollResponseAction = sendPollResponseAction,
             sessionPreferencesStore = sessionPreferencesStore,
+            scPreferencesStore = scPreferencesStore,
             timelineItemIndexer = timelineItemIndexer,
             timelineController = TimelineController(room, timeline),
             resolveVerifiedUserSendFailurePresenter = { aResolveVerifiedUserSendFailureState() },
@@ -1605,6 +1613,7 @@ class TimelinePresenterTest {
             analyticsService = FakeAnalyticsService(),
             liveLocationShareManager = liveLocationShareManager,
             markAsFullyRead = markAsFullyRead,
+            isPeek = false,
         )
     }
 }
