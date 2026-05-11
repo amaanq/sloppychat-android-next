@@ -59,6 +59,7 @@ import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.IconSource
 import io.element.android.libraries.designsystem.theme.components.SearchBar
 import io.element.android.libraries.designsystem.theme.components.Text
+import io.element.android.libraries.emoji.api.picker.CustomEmoji
 import io.element.android.libraries.emoji.impl.R
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
@@ -73,9 +74,12 @@ import kotlinx.coroutines.launch
 internal fun EmojiPickerView(
     state: DefaultEmojiPickerState,
     onSelectEmoji: (Emoji) -> Unit,
-    onSelectCustomEmoji: (String) -> Unit, // SC
+    onSelectCustomEmoji: (String) -> Unit, // SC: freeform-reaction text path
     selectedEmojis: ImmutableSet<String>,
     modifier: Modifier = Modifier,
+    // SC: grid taps go through here with the whole CustomEmoji so callers that need the
+    // (shortcode, url) pair keep it — duplicate-MXC packs would lose identity otherwise.
+    onSelectCustomEmojiByIdentity: (CustomEmoji) -> Unit = { onSelectCustomEmoji(it.url) }, // SC
     contentDescription: @Composable (emoji: Emoji, isSelected: Boolean) -> String = { emoji, _ -> emoji.unicode },
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -116,7 +120,7 @@ internal fun EmojiPickerView(
                 customEmojis = state.customEmojiSearchResults, // SC
                 isEmojiSelected = { selectedEmojis.contains(it.unicode) },
                 onSelectEmoji = onSelectEmoji,
-                onSelectCustomEmoji = onSelectCustomEmoji, // SC
+                onSelectCustomEmoji = onSelectCustomEmojiByIdentity, // SC
                 onLongPress = { skinPickerEmoji = it },
                 skinPickerEmoji = skinPickerEmoji,
                 onDismissSkinPicker = { skinPickerEmoji = null },
@@ -237,6 +241,7 @@ internal fun EmojiPickerView(
                         scIndex,
                         pagerState.currentPage,
                         onSelectCustomEmoji,
+                        onSelectCustomEmojiByIdentity,
                         customEmojiGridState,
                 ) {
                     state.eventSink(EmojiPickerEvent.ToggleSearchActive(true))
@@ -268,7 +273,7 @@ private fun EmojiResults(
     onSelectEmoji: (Emoji) -> Unit,
     onLongPress: (Emoji) -> Unit,
     customEmojis: ImmutableList<CustomEmoji> = persistentListOf(), // SC
-    onSelectCustomEmoji: (String) -> Unit = {}, // SC
+    onSelectCustomEmoji: (CustomEmoji) -> Unit = {}, // SC
     skinPickerEmoji: Emoji?,
     onDismissSkinPicker: () -> Unit,
     selectedEmojis: ImmutableSet<String>,
@@ -301,7 +306,7 @@ private fun EmojiResults(
             Box(
                 modifier = Modifier
                     .aspectRatio(1f)
-                    .clickable { onSelectCustomEmoji(emoji.url) },
+                    .clickable { onSelectCustomEmoji(emoji) },
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(

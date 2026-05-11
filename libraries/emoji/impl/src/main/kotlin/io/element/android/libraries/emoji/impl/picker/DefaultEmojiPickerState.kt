@@ -14,6 +14,7 @@ import androidx.compose.runtime.Immutable
 import io.element.android.emojibasebindings.Emoji
 import io.element.android.libraries.designsystem.theme.components.IconSource
 import io.element.android.libraries.designsystem.theme.components.SearchBarResultState
+import io.element.android.libraries.emoji.api.picker.CustomEmoji
 import io.element.android.libraries.emoji.api.picker.EmojiPickerState
 import kotlinx.collections.immutable.ImmutableList
 
@@ -44,14 +45,4 @@ internal data class CustomEmojiCategory(
     val packName: String,
     val avatarUrl: String?,
     val emojis: ImmutableList<CustomEmoji>,
-)
-
-/**
- * SC: a single custom emoji from an image pack.
- */
-@Immutable
-internal data class CustomEmoji(
-    val shortcode: String,
-    val url: String,
-    val body: String?,
 )

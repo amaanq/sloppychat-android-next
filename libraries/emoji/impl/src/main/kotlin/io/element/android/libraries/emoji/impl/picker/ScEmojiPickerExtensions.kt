@@ -51,6 +51,7 @@ import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.IconButton
+import io.element.android.libraries.emoji.api.picker.CustomEmoji
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.ui.strings.CommonStrings
@@ -106,19 +107,24 @@ internal fun ScEmojiPickerNonCustomTabsEnd(
     }
 }
 
+// Matrix reactions are conventionally a few unicode characters; long arbitrary
+// text is rejected by most clients and looks broken in timelines.
+private const val MAX_FREEFORM_REACTION_LEN = 64
+
 @Composable
 internal fun scEmojiPickerPage(
     state: DefaultEmojiPickerState,
     index: Int,
     selectedIndex: Int,
     onSelectCustomEmoji: (String) -> Unit,
+    onSelectCustomEmojiByIdentity: (CustomEmoji) -> Unit,
     customEmojiGridState: LazyGridState,
     launchSearch: () -> Unit,
 ): Boolean {
     if (index == state.customPackPageIndex()) {
         AllCustomEmojiGrid(
             packs = state.customEmojiPacks,
-            onSelectCustomEmoji = onSelectCustomEmoji,
+            onSelectCustomEmoji = onSelectCustomEmojiByIdentity,
             gridState = customEmojiGridState,
         )
         return true
@@ -148,10 +154,14 @@ internal fun scEmojiPickerPage(
                         unfocusedContainerColor = Color.Transparent,
                     ),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = { onSelectCustomEmoji(text.value) })
+                    keyboardActions = KeyboardActions(onSend = {
+                        val trimmed = text.value.trim().take(MAX_FREEFORM_REACTION_LEN)
+                        if (trimmed.isNotEmpty()) onSelectCustomEmoji(trimmed)
+                    })
                 )
                 SendButton(Modifier.align(Alignment.Bottom)) {
-                    onSelectCustomEmoji(text.value)
+                    val trimmed = text.value.trim().take(MAX_FREEFORM_REACTION_LEN)
+                    if (trimmed.isNotEmpty()) onSelectCustomEmoji(trimmed)
                 }
             }
             LaunchedEffect(selectedIndex == state.pageFreeformReactionIndex()) {
@@ -177,7 +187,7 @@ internal fun scEmojiPickerPage(
 @Composable
 private fun AllCustomEmojiGrid(
     packs: List<CustomEmojiCategory>,
-    onSelectCustomEmoji: (String) -> Unit,
+    onSelectCustomEmoji: (CustomEmoji) -> Unit,
     gridState: LazyGridState,
 ) {
     LazyVerticalGrid(
@@ -201,7 +211,7 @@ private fun AllCustomEmojiGrid(
             items(pack.emojis, key = { "emoji_${packIdx}_${it.shortcode}" }) { emoji ->
                 CustomEmojiItem(
                     emoji = emoji,
-                    onClick = { onSelectCustomEmoji(emoji.url) },
+                    onClick = { onSelectCustomEmoji(emoji) },
                     modifier = Modifier.aspectRatio(1f),
                 )
             }
