@@ -97,6 +97,7 @@ fun HomeView(
     onStartChatClick: () -> Unit,
     onCreateSpaceClick: () -> Unit,
     onRoomSettingsClick: (roomId: RoomId) -> Unit,
+    onRoomPeekClick: (roomId: RoomId) -> Unit, // SC
     onMenuActionClick: (RoomListMenuAction) -> Unit,
     onReportRoomClick: (roomId: RoomId) -> Unit,
     onDeclineInviteAndBlockUser: (roomSummary: RoomListRoomSummary) -> Unit,
@@ -116,6 +117,7 @@ fun HomeView(
                 canReportRoom = state.canReportRoom,
                 eventSink = state.eventSink,
                 onRoomSettingsClick = onRoomSettingsClick,
+                onRoomPeekClick = onRoomPeekClick, // SC
                 onReportRoomClick = onReportRoomClick,
             )
         }
@@ -414,6 +416,7 @@ internal fun HomeViewPreview(@PreviewParameter(HomeStateProvider::class) state: 
         onStartChatClick = {},
         onCreateSpaceClick = {},
         onRoomSettingsClick = {},
+        onRoomPeekClick = {}, // SC
         onReportRoomClick = {},
         onMenuActionClick = {},
         onDeclineInviteAndBlockUser = {},
@@ -435,6 +438,7 @@ internal fun HomeViewA11yPreview() = ElementPreview {
         onStartChatClick = {},
         onCreateSpaceClick = {},
         onRoomSettingsClick = {},
+        onRoomPeekClick = {}, // SC
         onReportRoomClick = {},
         onMenuActionClick = {},
         onDeclineInviteAndBlockUser = {},

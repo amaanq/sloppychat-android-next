@@ -28,6 +28,6 @@ class DefaultMessagesEntryPoint : MessagesEntryPoint {
 }
 
 internal fun MessagesEntryPoint.InitialTarget.toNavTarget() = when (this) {
-    is MessagesEntryPoint.InitialTarget.Messages -> MessagesFlowNode.NavTarget.Messages(focusedEventId)
+    is MessagesEntryPoint.InitialTarget.Messages -> MessagesFlowNode.NavTarget.Messages(focusedEventId, peek = peek) // SC
     MessagesEntryPoint.InitialTarget.PinnedMessages -> MessagesFlowNode.NavTarget.PinnedMessagesList
 }

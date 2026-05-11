@@ -51,6 +51,7 @@ fun RoomListContextMenu(
     canReportRoom: Boolean,
     eventSink: (RoomListEvent.ContextMenuEvent) -> Unit,
     onRoomSettingsClick: (roomId: RoomId) -> Unit,
+    onRoomPeekClick: (roomId: RoomId) -> Unit, // SC
     onReportRoomClick: (roomId: RoomId) -> Unit
 ) {
     ModalBottomSheet(
@@ -70,6 +71,10 @@ fun RoomListContextMenu(
             onRoomMarkUnreadClick = {
                 eventSink(RoomListEvent.HideContextMenu)
                 eventSink(RoomListEvent.MarkAsUnread(contextMenu.roomId))
+            },
+            onRoomPeekClick = { // SC
+                eventSink(RoomListEvent.HideContextMenu)
+                onRoomPeekClick(contextMenu.roomId)
             },
             onRoomSettingsClick = {
                 eventSink(RoomListEvent.HideContextMenu)
@@ -106,6 +111,7 @@ private fun RoomListModalBottomSheetContent(
     onFavoriteChange: (isFavorite: Boolean) -> Unit,
     onRoomMarkReadClick: () -> Unit,
     onRoomMarkUnreadClick: () -> Unit,
+    onRoomPeekClick: () -> Unit, // SC
     onClearCacheRoomClick: () -> Unit,
     onReportRoomClick: () -> Unit,
 ) {
@@ -152,6 +158,22 @@ private fun RoomListModalBottomSheetContent(
                 style = ListItemStyle.Primary,
             )
         }
+        // SC: peek — open the room without advancing read receipts/markers.
+        // Always shown: hasNewContent ignores silent unread when RENDER_SILENT_UNREAD is off,
+        // and entry-side flag clearing applies even to rooms whose only "unread" is markedUnread.
+        ListItem(
+            headlineContent = {
+                Text(
+                    text = stringResource(id = chat.schildi.lib.R.string.sc_action_peek_room),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            },
+            onClick = onRoomPeekClick,
+            leadingContent = ListItemContent.Icon(
+                iconSource = IconSource.Vector(CompoundIcons.VisibilityOn()),
+            ),
+            style = ListItemStyle.Primary,
+        )
         val (textResId, icon) = if (contextMenu.isFavorite) {
             CommonStrings.common_favourited to CompoundIcons.FavouriteSolid()
         } else {
@@ -251,6 +273,7 @@ internal fun RoomListModalBottomSheetContentPreview(
         canReportRoom = true,
         onRoomMarkReadClick = {},
         onRoomMarkUnreadClick = {},
+        onRoomPeekClick = {}, // SC
         onRoomSettingsClick = {},
         onLeaveRoomClick = {},
         onFavoriteChange = {},
