@@ -139,15 +139,19 @@ android {
     // SC: refuse to ship a release-signed artifact unless we actually have the release keystore.
     // Without this, a CI run that lost its keystore secret would silently produce a debug-signed
     // APK that can't update over real installs.
-    val releaseKeystoreExists = file(System.getenv("SC_RELEASE_KEYSTORE_PATH") ?: "./signature/release.keystore").exists()
-    val isReleaseTaskRequested = gradle.startParameter.taskNames.any { name ->
-        name.contains("Release", ignoreCase = false) && !name.contains("UnitTest") && !name.contains("AndroidTest")
-    }
-    if (isReleaseTaskRequested && !releaseKeystoreExists) {
-        error(
-            "Release task requested (${gradle.startParameter.taskNames}) but the release keystore is missing. " +
-            "Set SC_RELEASE_KEYSTORE_PATH or place the keystore at app/signature/release.keystore."
-        )
+    val releaseKeystoreFile = file(System.getenv("SC_RELEASE_KEYSTORE_PATH") ?: "./signature/release.keystore")
+    androidComponents.onVariants(androidComponents.selector().withBuildType("release")) { variant ->
+        if (!releaseKeystoreFile.exists()) {
+            val capName = variant.name.replaceFirstChar { it.uppercase() }
+            tasks.matching { it.name == "package$capName" || it.name == "bundle$capName" }.configureEach {
+                doFirst {
+                    error(
+                        "Release variant ${variant.name} requested but the release keystore is missing at " +
+                        "${releaseKeystoreFile.path}. Set SC_RELEASE_KEYSTORE_PATH or place the keystore there."
+                    )
+                }
+            }
+        }
     }
 
     val baseAppName = BuildTimeConfig.APPLICATION_NAME
