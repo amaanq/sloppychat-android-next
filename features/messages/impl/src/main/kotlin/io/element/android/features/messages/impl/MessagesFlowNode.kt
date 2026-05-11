@@ -146,7 +146,7 @@ class MessagesFlowNode(
 ), MessagesEntryPoint.NodeProxy {
     sealed interface NavTarget : Parcelable {
         @Parcelize
-        data class Messages(val focusedEventId: EventId?) : NavTarget
+        data class Messages(val focusedEventId: EventId?, val peek: Boolean = false) : NavTarget // SC peek
 
         @Parcelize
         data class MediaViewer(
@@ -369,7 +369,7 @@ class MessagesFlowNode(
                         overlay.show(NavTarget.AvatarPreview(username, avatarUrl))
                     }
                 }
-                val inputs = MessagesNode.Inputs(focusedEventId = navTarget.focusedEventId)
+                val inputs = MessagesNode.Inputs(focusedEventId = navTarget.focusedEventId, peek = navTarget.peek) // SC
                 createNode<MessagesNode>(buildContext, listOf(callback, inputs))
             }
             is NavTarget.MediaViewer -> {

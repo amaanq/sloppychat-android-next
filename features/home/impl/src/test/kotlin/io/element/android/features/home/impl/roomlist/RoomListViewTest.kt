@@ -277,6 +277,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setRoomListView(
     setSafeContent {
         HomeView(
             homeState = aHomeState(roomListState = state),
+            matrixClient = null,
             onRoomClick = onRoomClick,
             onSettingsClick = onSettingsClick,
             onSetUpRecoveryClick = onSetUpRecoveryClick,
@@ -284,6 +285,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setRoomListView(
             onStartChatClick = onCreateRoomClick,
             onCreateSpaceClick = onCreateSpaceClick,
             onRoomSettingsClick = onRoomSettingsClick,
+            onRoomPeekClick = EnsureNeverCalledWithParam(),
             onMenuActionClick = onMenuActionClick,
             onDeclineInviteAndBlockUser = onDeclineInviteAndBlockUser,
             onReportRoomClick = onReportRoomClick,

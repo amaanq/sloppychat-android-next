@@ -8,6 +8,7 @@
 
 package io.element.android.features.messages.impl.timeline
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -20,9 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.snapshotFlow
+import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.lib.preferences.ScPrefs
-import chat.schildi.lib.preferences.state
+import chat.schildi.lib.preferences.settingState
 import chat.schildi.lib.preferences.value
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
@@ -49,6 +51,7 @@ import io.element.android.features.poll.api.actions.SendPollResponseAction
 import io.element.android.features.roomcall.api.RoomCallState
 import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
+import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
@@ -88,6 +91,7 @@ const val FOCUS_ON_PINNED_EVENT_DEBOUNCE_DURATION_IN_MILLIS = 200L
 class TimelinePresenter(
     timelineItemsFactoryCreator: TimelineItemsFactory.Creator,
     private val room: JoinedRoom,
+    @ApplicationContext private val context: Context,
     private val dispatchers: CoroutineDispatchers,
     @SessionCoroutineScope
     private val sessionCoroutineScope: CoroutineScope,
@@ -96,7 +100,9 @@ class TimelinePresenter(
     private val sendPollResponseAction: SendPollResponseAction,
     private val endPollAction: EndPollAction,
     private val sessionPreferencesStore: SessionPreferencesStore,
+    private val scPreferencesStore: ScPreferencesStore,
     @Assisted private val timelineController: TimelineController,
+    @Assisted private val isPeek: Boolean, // SC: when true, suppress read receipt + fully-read marker side effects
     private val timelineItemIndexer: TimelineItemIndexer = TimelineItemIndexer(),
     private val resolveVerifiedUserSendFailurePresenter: Presenter<ResolveVerifiedUserSendFailureState>,
     private val typingNotificationPresenter: Presenter<TypingNotificationState>,
@@ -113,7 +119,8 @@ class TimelinePresenter(
     interface Factory {
         fun create(
             timelineController: TimelineController,
-            navigator: MessagesNavigator
+            navigator: MessagesNavigator,
+            isPeek: Boolean, // SC
         ): TimelinePresenter
     }
 
@@ -159,8 +166,12 @@ class TimelinePresenter(
         }.collectAsState(initial = true)
 
         // SC start
-        val syncReadReceiptAndMarker = ScPrefs.SYNC_READ_RECEIPT_AND_MARKER.state()
-        val context = LocalContext.current
+        val syncReadReceiptAndMarker = scPreferencesStore.settingState(ScPrefs.SYNC_READ_RECEIPT_AND_MARKER)
+        // Hidden-events prefs drive the timeline filter. We mirror them into a State so
+        // the items-collection LaunchedEffect below can re-filter when the user toggles them
+        // without leaving the room.
+        val hideMembership = scPreferencesStore.settingState(ScPrefs.HIDE_MEMBERSHIP_EVENTS)
+        val viewHidden = scPreferencesStore.settingState(ScPrefs.VIEW_HIDDEN_EVENTS)
         // SC end
 
         val displayThreadSummaries by produceState(false) {
@@ -176,7 +187,9 @@ class TimelinePresenter(
             when (event) {
                 // SC start
                 is TimelineEvent.OnUnreadLineVisible -> timelineController.scReadState.sawUnreadLine.value = true
-                is TimelineEvent.ForceMarkAsRead -> forceSetReceipts(context, sessionCoroutineScope, room, timelineController.scReadState, sessionPreferencesStore)
+                is TimelineEvent.ForceMarkAsRead -> if (!isPeek) {
+                    forceSetReceipts(context, sessionCoroutineScope, room, timelineController.scReadState, sessionPreferencesStore)
+                }
                 // SC end
                 is TimelineEvent.LoadMore -> {
                     if (event.direction == Timeline.PaginationDirection.FORWARDS && timelineMode is Timeline.Mode.Thread) {
@@ -191,6 +204,10 @@ class TimelinePresenter(
                     if (isLive) {
                         if (event.firstIndex == 0) {
                             newEventState.value = NewEventState.None
+                        }
+
+                        if (isPeek) { // SC: peek mode — never advance receipts/markers
+                            return
                         }
 
                         if (syncReadReceiptAndMarker.value) { // SC block
@@ -297,11 +314,27 @@ class TimelinePresenter(
             }
         }
 
+        // SC: Keep this LaunchedEffect Unit-keyed. The downstream `timelineController.timelineItems()`
+        // chain is reference-counted in the SDK (TimelineItemsSubscriber.subscribeIfNeeded /
+        // unsubscribeIfNeeded — see RustTimeline.timelineItems). Re-keying on pref state cancels
+        // both inner coroutines, drops the count to zero, and forces a fresh `timeline.timelineDiffFlow()`
+        // subscription on relaunch — diffs received in the gap are lost, and a Reset-style replay
+        // briefly overwrites the rendered timeline. That race surfaces as "messages appear for ~250ms
+        // then vanish" or "recent messages just don't show up." Pref changes are folded in via a
+        // snapshotFlow combine below so re-filtering doesn't need to tear down the SDK subscription.
         LaunchedEffect(Unit) {
-            timelineItemsFactory.timelineItems
-                .onEach { newTimelineItems ->
-                    timelineItemIndexer.process(newTimelineItems)
-                    timelineItems = newTimelineItems.toImmutableList()
+            combine(
+                timelineItemsFactory.timelineItems,
+                snapshotFlow { hideMembership.value to viewHidden.value },
+            ) { newTimelineItems, (hideMembershipVal, viewHiddenVal) ->
+                newTimelineItems.toImmutableList().filterForScHiddenEvents(
+                    hideMembership = hideMembershipVal,
+                    viewHidden = viewHiddenVal,
+                )
+            }
+                .onEach { filtered ->
+                    timelineItemIndexer.process(filtered)
+                    timelineItems = filtered
 
                     analyticsService.run {
                         finishLongRunningTransaction(DisplayFirstTimelineItems)
