@@ -54,6 +54,7 @@ import io.element.android.libraries.architecture.callback
 import io.element.android.libraries.architecture.inputs
 import io.element.android.libraries.designsystem.utils.OnLifecycleEvent
 import io.element.android.libraries.di.RoomScope
+import io.element.android.libraries.emoji.api.picker.EmojiPickerRenderer
 import io.element.android.libraries.matrix.api.analytics.toAnalyticsViewRoom
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -91,6 +92,7 @@ class ThreadedMessagesNode(
     private val permalinkParser: PermalinkParser,
     private val appNavigationStateService: AppNavigationStateService,
     private val roomMemberModerationRenderer: RoomMemberModerationRenderer,
+    private val emojiPickerRenderer: EmojiPickerRenderer, // SC
 ) : Node(buildContext, plugins = plugins), MessagesNavigator {
     data class Inputs(
         val threadRootEventId: ThreadId,
@@ -324,6 +326,7 @@ class ThreadedMessagesNode(
                     modifier = modifier,
                     knockRequestsBannerView = {},
                     customReactionBottomSheet = {},
+                    emojiPickerRenderer = emojiPickerRenderer, // SC
                     onThreadsListClick = {},
                 )
 

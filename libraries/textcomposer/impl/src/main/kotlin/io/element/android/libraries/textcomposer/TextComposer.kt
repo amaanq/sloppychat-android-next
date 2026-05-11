@@ -547,17 +547,19 @@ private fun StandardLayout(
                     movableVoiceRecording()
                 }
             }
-            // SC: Sticker button - show when idle
+            // SC: Unified emoji + sticker picker entry point (label preserved as
+            // onStickerClick for callsite continuity; icon is now a smiley since
+            // the sheet defaults to the emoji tab).
             if (onStickerClick != null && voiceMessageState is VoiceMessageState.Idle) {
                 IconButton(
                     modifier = Modifier
-                        .padding(bottom = 5.dp, top = 5.dp, start = 6.dp)
+                        .padding(bottom = 5.dp, top = 5.dp, start = 6.dp, end = 6.dp)
                         .size(48.dp),
                     onClick = onStickerClick,
                 ) {
                     Icon(
                         modifier = Modifier.size(24.dp),
-                        imageVector = CompoundIcons.Sticker(),
+                        imageVector = CompoundIcons.ReactionAdd(),
                         contentDescription = null,
                         tint = ElementTheme.colors.iconSecondary,
                     )

@@ -420,6 +420,7 @@ class MessagesNode(
                         emojiPickerRenderer = emojiPickerRenderer,
                     )
                 },
+                emojiPickerRenderer = emojiPickerRenderer, // SC
                 onThreadsListClick = callback::navigateToThreadsList,
             )
             roomMemberModerationRenderer.Render(

@@ -60,6 +60,8 @@ import io.element.android.libraries.designsystem.components.avatar.AvatarData
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
 import io.element.android.libraries.emoji.api.recentemojis.AddRecentEmoji
+import io.element.android.libraries.emoji.api.recentemojis.EmptyGetRecentEmojis
+import io.element.android.libraries.emoji.test.fakeEmojiPickerPresenterFactory
 import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
 import io.element.android.libraries.matrix.api.core.EventId
@@ -1427,6 +1429,8 @@ class MessagesPresenterTest {
             scPreferencesStore = PreviewScPreferencesStore, // SC
             imagePackService = ImagePackService(ImagePackRepository(FakeMatrixClient())), // SC
             roomListService = roomListService, // SC
+            emojiPickerPresenterFactory = fakeEmojiPickerPresenterFactory(), // SC
+            getRecentEmojis = EmptyGetRecentEmojis, // SC
             isPeek = false, // SC
             sessionCoroutineScope = backgroundScope,
         )

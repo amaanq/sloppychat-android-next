@@ -12,6 +12,7 @@ package io.element.android.features.messages.impl.messagecomposer
 
 import android.net.Uri
 import androidx.compose.runtime.remember
+import androidx.test.core.app.ApplicationProvider
 import app.cash.molecule.RecompositionMode
 import app.cash.molecule.moleculeFlow
 import app.cash.turbine.ReceiveTurbine
@@ -1661,6 +1662,7 @@ class MessageComposerPresenterTest : RobolectricTest() {
         featureFlagService = featureFlagService,
         contentScannerService = { _, _ -> },
         contentValidationCache = InMemoryEventContentValidationCache(),
+        customEmojiDraftStore = ScCustomEmojiDraftStore(ApplicationProvider.getApplicationContext()),
     ).apply {
         isTesting = true
         showTextFormatting = isRichTextEditorEnabled
