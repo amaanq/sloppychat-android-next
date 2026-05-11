@@ -51,7 +51,11 @@ class EmojiPickerPresenter(
         var emojiResults by remember { mutableStateOf<SearchBarResultState<ImmutableList<Emoji>>>(SearchBarResultState.Initial()) }
 
         val recentEmojiIcon = CompoundIcons.History()
-        val categories = remember {
+        // SC: keyed on inputs that produce the categories — without this, when the
+        // composer-side EmojiPickerPresenter is constructed before recent emojis
+        // have loaded, the recent category never appears (categories are remembered
+        // empty across recompositions).
+        val categories = remember(emojibaseStore, recentEmojis, recentEmojiIcon) {
             val providedCategories = emojibaseStore.categories.map { (category, emojis) ->
                 EmojiCategory(
                     titleId = category.title,

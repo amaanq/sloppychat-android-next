@@ -111,12 +111,17 @@ fun ScEmojiPickerNonCustomTabsEnd(
     }
 }
 
+// Matrix reactions are conventionally a few unicode characters; long arbitrary
+// text is rejected by most clients and looks broken in timelines.
+private const val MAX_FREEFORM_REACTION_LEN = 64
+
 @Composable
 fun scEmojiPickerPage(
     state: EmojiPickerState,
     index: Int,
     selectedIndex: Int,
     onSelectCustomEmoji: (String) -> Unit,
+    onSelectCustomEmojiByIdentity: (CustomEmoji) -> Unit,
     customEmojiGridState: LazyGridState,
     launchSearch: () -> Unit,
 ): Boolean {
@@ -124,7 +129,7 @@ fun scEmojiPickerPage(
     if (index == state.customPackPageIndex()) {
         AllCustomEmojiGrid(
             packs = state.customEmojiPacks,
-            onSelectCustomEmoji = onSelectCustomEmoji,
+            onSelectCustomEmoji = onSelectCustomEmojiByIdentity,
             gridState = customEmojiGridState,
         )
         return true
@@ -154,10 +159,14 @@ fun scEmojiPickerPage(
                         unfocusedContainerColor = Color.Transparent,
                     ),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = { onSelectCustomEmoji(text.value) })
+                    keyboardActions = KeyboardActions(onSend = {
+                        val trimmed = text.value.trim().take(MAX_FREEFORM_REACTION_LEN)
+                        if (trimmed.isNotEmpty()) onSelectCustomEmoji(trimmed)
+                    })
                 )
                 SendButton(Modifier.align(Alignment.Bottom)) {
-                    onSelectCustomEmoji(text.value)
+                    val trimmed = text.value.trim().take(MAX_FREEFORM_REACTION_LEN)
+                    if (trimmed.isNotEmpty()) onSelectCustomEmoji(trimmed)
                 }
             }
             LaunchedEffect(selectedIndex == state.pageFreeformReactionIndex()) {
@@ -183,7 +192,7 @@ fun scEmojiPickerPage(
 @Composable
 private fun AllCustomEmojiGrid(
     packs: List<CustomEmojiCategory>,
-    onSelectCustomEmoji: (String) -> Unit,
+    onSelectCustomEmoji: (CustomEmoji) -> Unit,
     gridState: LazyGridState,
 ) {
     LazyVerticalGrid(
@@ -207,7 +216,7 @@ private fun AllCustomEmojiGrid(
             items(pack.emojis, key = { "emoji_${packIdx}_${it.shortcode}" }) { emoji ->
                 CustomEmojiItem(
                     emoji = emoji,
-                    onClick = { onSelectCustomEmoji(emoji.url) },
+                    onClick = { onSelectCustomEmoji(emoji) },
                     modifier = Modifier.aspectRatio(1f),
                 )
             }

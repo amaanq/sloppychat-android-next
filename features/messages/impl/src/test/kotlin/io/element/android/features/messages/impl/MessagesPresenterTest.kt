@@ -104,6 +104,8 @@ import io.element.android.libraries.matrix.test.timeline.FakeTimeline
 import io.element.android.libraries.matrix.test.timeline.aTimelineItemDebugInfo
 import io.element.android.libraries.matrix.ui.messages.reply.InReplyToDetails
 import io.element.android.libraries.recentemojis.api.AddRecentEmoji
+import io.element.android.libraries.recentemojis.api.GetRecentEmojis
+import io.element.android.libraries.recentemojis.test.FakeEmojibaseProvider
 import io.element.android.libraries.textcomposer.model.MessageComposerMode
 import io.element.android.libraries.textcomposer.model.TextEditorState
 import io.element.android.libraries.textcomposer.model.aTextEditorStateMarkdown
@@ -1427,6 +1429,8 @@ class MessagesPresenterTest {
             scPreferencesStore = PreviewScPreferencesStore, // SC
             imagePackService = ImagePackService(ImagePackRepository(FakeMatrixClient())), // SC
             roomListService = roomListService, // SC
+            emojibaseProvider = FakeEmojibaseProvider(), // SC
+            getRecentEmojis = GetRecentEmojis { Result.success(persistentListOf()) }, // SC
             isPeek = false, // SC
             sessionCoroutineScope = backgroundScope,
         )

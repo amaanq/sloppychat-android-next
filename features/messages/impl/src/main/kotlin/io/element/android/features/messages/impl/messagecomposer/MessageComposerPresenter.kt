@@ -11,6 +11,7 @@ package io.element.android.features.messages.impl.messagecomposer
 import android.Manifest
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.text.SpannableStringBuilder
 import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -435,6 +436,13 @@ class MessageComposerPresenter(
                 MessageComposerEvent.ClearSlashError -> {
                     slashCommandAction.value = AsyncAction.Uninitialized
                 }
+                is MessageComposerEvent.InsertText -> { // SC
+                    insertPlainTextAtCursor(event.text, markdownTextEditorState, richTextEditorState)
+                }
+                is MessageComposerEvent.InsertCustomEmoji -> { // SC
+                    customEmojiDraftStore.put(draftRoomKey, event.shortcode, event.mxcUrl)
+                    insertPlainTextAtCursor(":${event.shortcode}:", markdownTextEditorState, richTextEditorState)
+                }
             }
         }
 
@@ -553,6 +561,39 @@ class MessageComposerPresenter(
         .replace("\"", "&quot;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
+
+    // SC: insert raw text at the cursor in whichever editor is active. Used by the
+    // unified emoji+sticker picker when the user taps an emoji/custom-emoji.
+    //
+    // Markdown mode: insert at cursor exactly. Rich-text (wysiwyg) mode: the wysiwyg
+    // library doesn't expose an at-cursor plain-text insert, so we append to the end —
+    // not ideal but rich-text is rarely used in this fork.
+    private fun insertPlainTextAtCursor(
+        text: String,
+        markdownTextEditorState: MarkdownTextEditorState,
+        richTextEditorState: RichTextEditorState,
+    ) {
+        if (showTextFormatting) {
+            val existing = richTextEditorState.messageHtml.orEmpty()
+            // Treat text as plain — escape minimally and add a space boundary.
+            val safe = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            val combined = if (existing.isBlank()) safe else "$existing $safe"
+            sessionCoroutineScope.launch { richTextEditorState.setHtml(combined) }
+        } else {
+            val current = markdownTextEditorState.text.value()
+            val len = current.length
+            val sel = markdownTextEditorState.selection
+            val safeStart = sel.first.coerceIn(0, len)
+            val safeEnd = sel.last.coerceIn(safeStart, len)
+            val updated = SpannableStringBuilder(current).also {
+                if (safeEnd > safeStart) it.delete(safeStart, safeEnd)
+                it.insert(safeStart, text)
+            }
+            markdownTextEditorState.text.update(updated, true)
+            val newPos = safeStart + text.length
+            markdownTextEditorState.selection = newPos..newPos
+        }
+    }
 
     // Used when fabricating an HTML body from plain markdown — preserves line breaks
     // so multiline custom-emoji messages don't collapse into one line on clients

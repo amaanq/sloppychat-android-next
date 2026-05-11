@@ -71,7 +71,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun EmojiPicker(
     onSelectEmoji: (Emoji) -> Unit,
-    onSelectCustomEmoji: (String) -> Unit, // SC
+    onSelectCustomEmoji: (String) -> Unit, // SC: freeform-reaction text path; also receives URL fallback for legacy callers
+    // SC: grid taps call this with the full CustomEmoji so callers that need
+    // the (shortcode, url) pair (composer-insert flow) don't have to recover
+    // identity from the URL — duplicate-MXC packs would lose it.
+    onSelectCustomEmojiByIdentity: (CustomEmoji) -> Unit = { onSelectCustomEmoji(it.url) },
     state: EmojiPickerState,
     selectedEmojis: ImmutableSet<String>,
     modifier: Modifier = Modifier,
@@ -117,7 +121,7 @@ fun EmojiPicker(
                 skinPickerEmoji = skinPickerEmoji,
                 onDismissSkinPicker = { skinPickerEmoji = null },
                 selectedEmojis = selectedEmojis,
-                onSelectCustomEmoji = onSelectCustomEmoji,
+                onSelectCustomEmoji = onSelectCustomEmojiByIdentity,
             )
         }
 
@@ -237,6 +241,7 @@ fun EmojiPicker(
                         scIndex,
                         pagerState.currentPage,
                         onSelectCustomEmoji,
+                        onSelectCustomEmojiByIdentity,
                         customEmojiGridState,
                 ) {
                     state.eventSink(EmojiPickerEvent.ToggleSearchActive(true))
@@ -300,7 +305,11 @@ private fun CombinedEmojiResults(
     customEmojis: ImmutableList<CustomEmoji>,
     isEmojiSelected: (Emoji) -> Boolean,
     onSelectEmoji: (Emoji) -> Unit,
-    onSelectCustomEmoji: (String) -> Unit,
+    onLongPress: (Emoji) -> Unit,
+    skinPickerEmoji: Emoji?,
+    onDismissSkinPicker: () -> Unit,
+    selectedEmojis: ImmutableSet<String>,
+    onSelectCustomEmoji: (CustomEmoji) -> Unit,
 ) {
     LazyVerticalGrid(
         modifier = Modifier.fillMaxSize(),
@@ -327,7 +336,7 @@ private fun CombinedEmojiResults(
             Box(
                 modifier = Modifier
                     .aspectRatio(1f)
-                    .clickable { onSelectCustomEmoji(emoji.url) },
+                    .clickable { onSelectCustomEmoji(emoji) },
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(

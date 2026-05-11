@@ -17,6 +17,7 @@ import io.element.android.features.messages.impl.pinned.banner.PinnedMessagesBan
 import io.element.android.features.messages.impl.spacedrawer.ChatSpaceDrawerState
 import io.element.android.features.messages.impl.sticker.StickerPickerState
 import io.element.android.features.messages.impl.timeline.TimelineState
+import io.element.android.features.messages.impl.timeline.components.customreaction.picker.EmojiPickerState
 import io.element.android.features.messages.impl.timeline.components.customreaction.CustomReactionState
 import io.element.android.features.messages.impl.timeline.components.reactionsummary.ReactionSummaryState
 import io.element.android.features.messages.impl.timeline.components.receipt.bottomsheet.ReadReceiptBottomSheetState
@@ -58,8 +59,9 @@ data class MessagesState(
     val dmUserVerificationState: IdentityState?,
     val isRoomEncrypted: Boolean? = null, // SC
     val bridgeState: ImmutableList<BridgeState>? = null, // SC
-    val showStickerPicker: Boolean = false, // SC
+    val showMediaInsertSheet: Boolean = false, // SC
     val stickerPickerState: StickerPickerState, // SC
+    val emojiPickerState: EmojiPickerState, // SC
     val chatSpaceDrawerState: ChatSpaceDrawerState, // SC
     val roomMemberModerationState: RoomMemberModerationState,
     /** Type of "shared history" icon to show in the top bar. */

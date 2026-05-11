@@ -163,6 +163,16 @@ fun aMessagesState(
         hadLoadErrors = false,
         eventSink = {},
     ),
+    emojiPickerState = io.element.android.features.messages.impl.timeline.components.customreaction.picker.EmojiPickerState(
+        categories = persistentListOf(),
+        allEmojis = persistentListOf(),
+        searchQuery = androidx.compose.foundation.text.input.TextFieldState(),
+        isSearchActive = false,
+        searchResults = io.element.android.libraries.designsystem.theme.components.SearchBarResultState.Initial(),
+        customEmojiPacks = persistentListOf(),
+        customEmojiSearchResults = persistentListOf(),
+        eventSink = {},
+    ),
     chatSpaceDrawerState = ChatSpaceDrawerState(
         enabled = false,
         pseudoSpaces = persistentListOf(),
