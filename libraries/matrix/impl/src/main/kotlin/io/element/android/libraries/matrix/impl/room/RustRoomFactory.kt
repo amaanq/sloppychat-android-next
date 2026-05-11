@@ -14,7 +14,6 @@ import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.appconfig.TimelineConfig
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -122,7 +121,9 @@ class RustRoomFactory(
                     operation = "RustRoomFactory.getJoinedRoomOrPreview",
                     parentTransaction = parentTransaction,
                 ) { transaction ->
-                    val hideThreadedEvents = featureFlagService.isFeatureEnabled(FeatureFlags.Threads)
+                    // SC: Keep thread replies in the main live timeline. Hiding them at the SDK layer makes
+                    // regular message events disappear after relation metadata is resolved.
+                    val hideThreadedEvents = false
                     // Init the live timeline in the SDK from the Room
                     val timeline = transaction.recordChildTransaction(
                         operation = "sdkRoom.timelineWithConfiguration",
