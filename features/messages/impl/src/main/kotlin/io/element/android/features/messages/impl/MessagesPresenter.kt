@@ -144,6 +144,7 @@ class MessagesPresenter(
     private val liveLocationShareManager: ActiveLiveLocationShareManager,
     private val imagePackService: ImagePackService, // SC
     private val roomListService: RoomListService, // SC
+    @Assisted private val isPeek: Boolean, // SC: when true, suppress unread-flag clearing and fully-read-on-exit
     @SessionCoroutineScope private val sessionCoroutineScope: CoroutineScope,
 ) : Presenter<MessagesState> {
     @AssistedFactory
@@ -154,6 +155,7 @@ class MessagesPresenter(
             timelinePresenter: Presenter<TimelineState>,
             actionListPresenter: Presenter<ActionListState>,
             timelineController: TimelineController,
+            isPeek: Boolean, // SC
         ): MessagesPresenter
     }
 
@@ -228,7 +230,9 @@ class MessagesPresenter(
             // Remove the unread flag on entering but don't send read receipts
             // as those will be handled by the timeline.
             withContext(dispatchers.io) {
-                room.setUnreadFlag(isUnread = false)
+                if (!isPeek) { // SC: peek mode preserves the unread flag
+                    room.setUnreadFlag(isUnread = false)
+                }
 
                 // If for some reason the encryption state is unknown, fetch it
                 if (roomInfo.isEncrypted == null) {
@@ -323,7 +327,9 @@ class MessagesPresenter(
                     navigator.navigateToRoom(event.roomId, null, emptyList())
                 }
                 is MessagesEvent.MarkAsFullyReadAndExit -> if (!markingAsReadAndExiting.getAndSet(true)) {
-                    coroutineScope.launch {
+                    if (isPeek) { // SC: peek mode — close without advancing the fully-read marker
+                        navigator.close()
+                    } else coroutineScope.launch {
                         val syncMarkers = scPreferencesStore.getSetting(ScPrefs.SYNC_READ_RECEIPT_AND_MARKER)
                         val requireFullyRead = scPreferencesStore.getSetting(ScPrefs.MARK_READ_REQUIRES_SEEN_UNREAD_LINE)
                         if (requireFullyRead && !event.scReadState.sawUnreadLine.value) {

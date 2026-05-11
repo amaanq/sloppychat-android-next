@@ -23,7 +23,7 @@ interface HomeEntryPoint : FeatureEntryPoint {
     ): Node
 
     interface Callback : Plugin {
-        fun navigateToRoom(roomId: RoomId, joinedRoom: JoinedRoom?)
+        fun navigateToRoom(roomId: RoomId, joinedRoom: JoinedRoom?, peek: Boolean = false) // SC peek
         fun navigateToCreateRoom()
         fun navigateToCreateSpace()
         fun navigateToSettings()

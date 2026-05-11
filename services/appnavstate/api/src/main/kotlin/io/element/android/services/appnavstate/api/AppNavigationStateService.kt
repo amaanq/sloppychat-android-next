@@ -22,7 +22,7 @@ interface AppNavigationStateService {
     fun onNavigateToSession(owner: String, sessionId: SessionId)
     fun onLeavingSession(owner: String)
 
-    fun onNavigateToRoom(owner: String, roomId: RoomId)
+    fun onNavigateToRoom(owner: String, roomId: RoomId, peek: Boolean = false) // SC peek
     fun onLeavingRoom(owner: String)
 
     fun onNavigateToThread(owner: String, threadId: ThreadId)

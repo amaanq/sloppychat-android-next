@@ -68,14 +68,14 @@ class DefaultAppNavigationStateService(
         state.getAndUpdate { it.copy(navigationState = newValue) }
     }
 
-    override fun onNavigateToRoom(owner: String, roomId: RoomId) {
+    override fun onNavigateToRoom(owner: String, roomId: RoomId, peek: Boolean) { // SC peek
         val currentValue = state.value.navigationState
-        Timber.tag(loggerTag.value).d("Navigating to room $roomId. Current state: $currentValue")
+        Timber.tag(loggerTag.value).d("Navigating to room $roomId (peek=$peek). Current state: $currentValue")
         val newValue: NavigationState.Room = when (currentValue) {
             NavigationState.Root -> return logError("onNavigateToSession()")
-            is NavigationState.Session -> NavigationState.Room(owner, roomId, currentValue)
-            is NavigationState.Room -> NavigationState.Room(owner, roomId, currentValue.parentSession)
-            is NavigationState.Thread -> NavigationState.Room(owner, roomId, currentValue.parentRoom.parentSession)
+            is NavigationState.Session -> NavigationState.Room(owner, roomId, currentValue, peek = peek)
+            is NavigationState.Room -> NavigationState.Room(owner, roomId, currentValue.parentSession, peek = peek)
+            is NavigationState.Thread -> NavigationState.Room(owner, roomId, currentValue.parentRoom.parentSession, peek = peek)
         }
         state.getAndUpdate { it.copy(navigationState = newValue) }
     }

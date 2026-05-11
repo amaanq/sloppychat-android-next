@@ -19,6 +19,10 @@ sealed interface RoomNavigationTarget : Parcelable {
     data class Root(
         val eventId: EventId? = null,
         @IgnoredOnParcel val joinedRoom: JoinedRoom? = null,
+        // SC: when true, the room opens in "peek" mode — read receipts and the
+        // fully-read marker are not advanced. Parcelled so it survives Appyx
+        // node reconstruction (e.g. config change while peeking).
+        val peek: Boolean = false,
     ) : RoomNavigationTarget
 
     @Parcelize

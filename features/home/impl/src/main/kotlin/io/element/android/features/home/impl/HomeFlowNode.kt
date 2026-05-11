@@ -189,6 +189,7 @@ class HomeFlowNode(
 
             fun navigateToRoom(
                 roomId: RoomId,
+                peek: Boolean = false, // SC
             ) {
                 if (!loadingJoinedRoomJob.value.isUninitialized()) {
                     Timber.w("Already loading a room, ignoring navigateToRoom for $roomId")
@@ -201,7 +202,7 @@ class HomeFlowNode(
                     }.fold(
                         onSuccess = { joinedRoom ->
                             if (isActive) {
-                                callback.navigateToRoom(roomId, joinedRoom)
+                                callback.navigateToRoom(roomId, joinedRoom, peek = peek) // SC peek
                                 loadingJoinedRoomJob.value = AsyncData.Success(coroutineContext.job)
                                 // Wait a bit before resetting the state to avoid allowing to open several rooms
                                 delay(200.milliseconds)
@@ -211,7 +212,7 @@ class HomeFlowNode(
                         onFailure = {
                             // If the operation wasn't cancelled, navigate without the room, using the room id
                             if (it !is CancellationException) {
-                                callback.navigateToRoom(roomId, null)
+                                callback.navigateToRoom(roomId, null, peek = peek) // SC peek
                             }
                             loadingJoinedRoomJob.value = AsyncData.Failure(error = it, prevData = coroutineContext.job)
                             // Wait a bit before resetting the state to avoid allowing to open several rooms
@@ -226,13 +227,14 @@ class HomeFlowNode(
             HomeView(
                 homeState = state,
                 matrixClient = matrixClient, // SC
-                onRoomClick = ::navigateToRoom,
+                onRoomClick = { roomId -> navigateToRoom(roomId) },
                 onSettingsClick = callback::navigateToSettings,
                 onStartChatClick = callback::navigateToCreateRoom,
                 onCreateSpaceClick = callback::navigateToCreateSpace,
                 onSetUpRecoveryClick = callback::navigateToSetUpRecovery,
                 onConfirmRecoveryKeyClick = callback::navigateToEnterRecoveryKey,
                 onRoomSettingsClick = callback::navigateToRoomSettings,
+                onRoomPeekClick = { roomId -> navigateToRoom(roomId, peek = true) }, // SC
                 onMenuActionClick = { onMenuActionClick(activity, it) },
                 onReportRoomClick = ::navigateToReportRoom,
                 onDeclineInviteAndBlockUser = ::navigateToDeclineInviteAndBlockUser,
@@ -240,7 +242,7 @@ class HomeFlowNode(
                 acceptDeclineInviteView = {
                     acceptDeclineInviteView.Render(
                         state = state.roomListState.acceptDeclineInviteState,
-                        onAcceptInviteSuccess = ::navigateToRoom,
+                        onAcceptInviteSuccess = { roomId -> navigateToRoom(roomId) },
                         onDeclineInviteSuccess = { },
                         modifier = Modifier
                     )

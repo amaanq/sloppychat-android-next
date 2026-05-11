@@ -87,11 +87,14 @@ class DefaultNotificationDrawerManager(
                 clearFallbackForSession(navigationState.sessionId)
             }
             is NavigationState.Room -> {
-                // Cleanup notification for current room
-                clearMessagesForRoom(
-                    sessionId = navigationState.parentSession.sessionId,
-                    roomId = navigationState.roomId,
-                )
+                // SC: peek mode preserves existing notifications — the user wanted to look
+                // at the room without acknowledging it, which extends to OS notifications.
+                if (!navigationState.peek) {
+                    clearMessagesForRoom(
+                        sessionId = navigationState.parentSession.sessionId,
+                        roomId = navigationState.roomId,
+                    )
+                }
             }
             is NavigationState.Thread -> {
                 clearMessagesForThread(
@@ -240,6 +243,11 @@ class DefaultNotificationDrawerManager(
  */
 private fun AppNavigationState.shouldIgnoreEvent(event: NotifiableEvent): Boolean {
     if (!isInForeground) return false
+    // SC: don't suppress notifications for the current room when it's open in peek mode —
+    // the user explicitly asked not to acknowledge the room.
+    val currentRoom = navigationState as? NavigationState.Room
+        ?: (navigationState as? NavigationState.Thread)?.parentRoom
+    if (currentRoom?.peek == true) return false
     return navigationState.currentSessionId() == event.sessionId &&
         when (event) {
             is NotifiableRingingCallEvent -> {
