@@ -26,6 +26,7 @@ interface MessagesEntryPoint : FeatureEntryPoint {
         @Parcelize
         data class Messages(
             val focusedEventId: EventId?,
+            val peek: Boolean = false, // SC: open in read-marker-suppressed "peek" mode
         ) : InitialTarget
 
         @Parcelize
