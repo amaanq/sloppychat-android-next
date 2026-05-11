@@ -37,6 +37,11 @@ sealed interface MessageComposerEvent {
     data class SuggestionReceived(val suggestion: Suggestion?) : MessageComposerEvent
     data class InsertSuggestion(val resolvedSuggestion: ResolvedSuggestion) : MessageComposerEvent
     data class InsertMention(val userId: UserId) : MessageComposerEvent // SC
+    // SC: insert text into the composer at the cursor (no spans). Built-in unicode emoji.
+    data class InsertText(val text: String) : MessageComposerEvent
+    // SC: insert :shortcode: at the cursor AND register the shortcode → MXC mapping
+    // in the draft store so send-time HTML substitution turns it into an <img>.
+    data class InsertCustomEmoji(val shortcode: String, val mxcUrl: String) : MessageComposerEvent
     data object SaveDraft : MessageComposerEvent
     data object ClearSlashError : MessageComposerEvent
 }

@@ -10,7 +10,10 @@ package io.element.android.features.messages.impl
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
@@ -396,6 +400,88 @@ fun MessagesView(
 
     } // end mainContent lambda // SC
 
+    // SC: back press dismisses the panel before exiting the room.
+    BackHandler(enabled = state.showMediaInsertSheet) {
+        state.eventSink(MessagesEvent.DismissStickerPicker)
+    }
+
+    // SC: keyboard ↔ panel are mutually exclusive states.
+    //  - Composer focused AND IME visible while panel open → dismiss panel.
+    //    Requiring composer focus filters out IME events from picker-internal
+    //    text fields (emoji search / freeform reaction), which would otherwise
+    //    dismiss the panel as soon as the user tapped the search box.
+    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+    val isImeVisible = WindowInsets.isImeVisible
+    val composerFocused = state.composerState.textEditorState.hasFocus()
+    LaunchedEffect(isImeVisible, composerFocused) {
+        if (state.showMediaInsertSheet && composerFocused && isImeVisible) {
+            state.eventSink(MessagesEvent.DismissStickerPicker)
+        }
+    }
+    // SC: the inverse — opening the panel while the keyboard is up should hide
+    // the keyboard, so the two never coexist (otherwise the panel gets shoved
+    // off-screen by the IME insets). LocalSoftwareKeyboardController doesn't
+    // reliably hide the IME for the wysiwyg AndroidView-backed composer; go
+    // through the View's WindowInsetsController instead, and also clear focus
+    // so re-tapping the field is required to bring the keyboard back.
+    val viewForIme = LocalView.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    LaunchedEffect(state.showMediaInsertSheet) {
+        if (state.showMediaInsertSheet) {
+            viewForIme.hideKeyboard()
+            focusManager.clearFocus(force = true)
+        }
+    }
+
+    // SC: wrap mainContent + the inline media-insert panel in a Column so the
+    // picker takes vertical space at the bottom of the screen and the composer
+    // (which lives inside mainContent) gets pushed up naturally. The whole
+    // column animates its content size so panel toggle feels smooth instead of
+    // the chat area snapping its height.
+    val contentWithMediaInsert = @Composable {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                mainContent()
+            }
+            AnimatedVisibility(
+                visible = state.showMediaInsertSheet,
+                enter = expandVertically(animationSpec = tween(220)) +
+                    fadeIn(animationSpec = tween(220)),
+                exit = shrinkVertically(animationSpec = tween(180)) +
+                    fadeOut(animationSpec = tween(120)),
+            ) {
+                io.element.android.features.messages.impl.mediainsert.MediaInsertPanel(
+                    emojiPickerState = state.emojiPickerState,
+                    stickerPickerState = state.stickerPickerState,
+                    onSelectEmoji = { emoji ->
+                        state.composerState.eventSink(
+                            io.element.android.features.messages.impl.messagecomposer.MessageComposerEvent.InsertText(emoji.unicode)
+                        )
+                    },
+                    onSelectCustomEmoji = { customEmoji ->
+                        state.composerState.eventSink(
+                            io.element.android.features.messages.impl.messagecomposer.MessageComposerEvent.InsertCustomEmoji(
+                                shortcode = customEmoji.shortcode,
+                                mxcUrl = customEmoji.url,
+                            )
+                        )
+                    },
+                    onSelectFreeformText = { text ->
+                        state.composerState.eventSink(
+                            io.element.android.features.messages.impl.messagecomposer.MessageComposerEvent.InsertText(text)
+                        )
+                    },
+                    onSendSticker = { sticker ->
+                        state.stickerPickerState.eventSink(
+                            io.element.android.features.messages.impl.sticker.StickerPickerEvent.SendSticker(sticker)
+                        )
+                    },
+                    onDismiss = { state.eventSink(MessagesEvent.DismissStickerPicker) },
+                )
+            }
+        }
+    }
+
     // SC: Wrap main content in drawer when enabled.
     // clipToBounds prevents the offscreen drawer content from becoming visible
     // during Appyx navigation transitions (slide-in/slide-out).
@@ -416,10 +502,10 @@ fun MessagesView(
                 )
             },
         ) {
-            mainContent()
+            contentWithMediaInsert()
         }
     } else {
-        mainContent()
+        contentWithMediaInsert()
     }
 
     var endPollConfirmingEvent: TimelineItem.Event? by remember { mutableStateOf(null) }
@@ -465,13 +551,9 @@ fun MessagesView(
         }
     )
 
-    // SC: Sticker picker bottom sheet
-    if (state.showStickerPicker) {
-        io.element.android.features.messages.impl.sticker.StickerPickerBottomSheet(
-            state = state.stickerPickerState,
-            onDismiss = { state.eventSink(MessagesEvent.DismissStickerPicker) },
-        )
-    }
+    // SC: Unified emoji + sticker picker is rendered inline below the composer
+    // (see MessagesViewComposerBottomSheetContents below) so the composer text
+    // box stays visible above it. Nothing to render here as an overlay.
 
     ReactionSummaryView(state = state.reactionSummaryState)
     ReadReceiptBottomSheet(

@@ -5,6 +5,8 @@
     <string name="sc_action_copy_mxc_link">Copy MXC link</string>
     <string name="sc_action_low_priority">Low priority</string>
     <string name="sc_action_peek_room">Open without marking as read</string>
+    <string name="sc_media_insert_tab_emoji">Emoji</string>
+    <string name="sc_media_insert_tab_stickers">Stickers</string>
 
     <!-- Onboarding -->
     <string name="sc_onboarding_welcome_title">Welcome to SloppyChat</string>
