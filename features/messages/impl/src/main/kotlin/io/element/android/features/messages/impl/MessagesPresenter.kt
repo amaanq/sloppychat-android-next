@@ -75,7 +75,9 @@ import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatch
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarMessage
 import io.element.android.libraries.designsystem.utils.snackbar.collectSnackbarMessageAsState
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
+import io.element.android.libraries.emoji.api.picker.EmojiPickerPresenter
 import io.element.android.libraries.emoji.api.recentemojis.AddRecentEmoji
+import io.element.android.libraries.emoji.api.recentemojis.GetRecentEmojis
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.core.toThreadId
@@ -144,9 +146,13 @@ class MessagesPresenter(
     private val liveLocationShareManager: ActiveLiveLocationShareManager,
     private val imagePackService: ImagePackService, // SC
     private val roomListService: RoomListService, // SC
+    emojiPickerPresenterFactory: EmojiPickerPresenter.Factory, // SC: backs the unified emoji+sticker insert sheet
+    getRecentEmojis: GetRecentEmojis, // SC
     @Assisted private val isPeek: Boolean, // SC: when true, suppress unread-flag clearing and fully-read-on-exit
     @SessionCoroutineScope private val sessionCoroutineScope: CoroutineScope,
 ) : Presenter<MessagesState> {
+    private val emojiPickerPresenter = emojiPickerPresenterFactory.create(getRecentEmojis, room) // SC
+
     @AssistedFactory
     interface Factory {
         fun create(
@@ -205,8 +211,8 @@ class MessagesPresenter(
             derivedStateOf { roomInfo.heroes().toImmutableList() }
         }
 
-        // SC: Sticker picker state — always compose so coroutine scope survives dismissal
-        var showStickerPicker by remember { mutableStateOf(false) }
+        // SC: Unified emoji + sticker picker — always compose so coroutine scopes survive dismissal
+        var showMediaInsertSheet by remember { mutableStateOf(false) }
         val stickerPickerPresenter = remember {
             StickerPickerPresenter(
                 room = room,
@@ -216,6 +222,7 @@ class MessagesPresenter(
             )
         }
         val stickerPickerState = stickerPickerPresenter.present()
+        val emojiPickerState = emojiPickerPresenter.present()
 
         // SC: Chat space drawer presenter — always compose so state stays fresh
         val chatSpaceDrawerPresenter = remember {
@@ -317,11 +324,11 @@ class MessagesPresenter(
                 MessagesEvent.ShowLiveLocationShare -> {
                     navigator.navigateToCurrentLiveLocation()
                 }
-                is MessagesEvent.ShowStickerPicker -> { // SC
-                    showStickerPicker = true
+                is MessagesEvent.ShowStickerPicker -> { // SC: smiley icon toggles the inline media-insert panel
+                    showMediaInsertSheet = !showMediaInsertSheet
                 }
                 is MessagesEvent.DismissStickerPicker -> { // SC
-                    showStickerPicker = false
+                    showMediaInsertSheet = false
                 }
                 is MessagesEvent.NavigateToRoom -> { // SC
                     navigator.navigateToRoom(event.roomId, null, emptyList())
@@ -395,8 +402,9 @@ class MessagesPresenter(
             isRoomEncrypted = roomInfo.isEncrypted, // SC
             bridgeState = roomInfo.bridgeState.toImmutableList(), // SC
             dmUserStatus = roomInfo.dmUserStatus(),
-            showStickerPicker = showStickerPicker, // SC
+            showMediaInsertSheet = showMediaInsertSheet, // SC
             stickerPickerState = stickerPickerState, // SC
+            emojiPickerState = emojiPickerState, // SC
             chatSpaceDrawerState = chatSpaceDrawerState, // SC
             roomMemberModerationState = roomMemberModerationState,
             topBarSharedHistoryIcon = topBarSharedHistoryIcon,

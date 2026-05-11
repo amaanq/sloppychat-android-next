@@ -18,6 +18,11 @@ interface EmojiPickerRenderer {
     /**
      * @param state opaque state produced by [EmojiPickerPresenter.present].
      * @param onSelectEmoji invoked when the user taps an emoji (including a skin-tone variant).
+     * @param onSelectCustomEmoji invoked with freeform reaction text, and with a bare MXC URL for
+     * callers that do not override [onSelectCustomEmojiByIdentity].
+     * @param onSelectCustomEmojiByIdentity invoked on custom-emoji grid taps with the whole
+     * [CustomEmoji], so callers that need the shortcode keep it — packs reuse MXC URLs across
+     * shortcodes, so the URL alone is not an identity.
      * @param selectedEmojis emojis to visually mark as already selected.
      * @param modifier layout modifier for the picker container.
      * @param contentDescription accessibility label for each emoji cell.
@@ -29,6 +34,7 @@ interface EmojiPickerRenderer {
         onSelectCustomEmoji: (String) -> Unit, // SC
         selectedEmojis: ImmutableSet<String>,
         modifier: Modifier = Modifier,
+        onSelectCustomEmojiByIdentity: (CustomEmoji) -> Unit = { onSelectCustomEmoji(it.url) }, // SC
         contentDescription: @Composable (Emoji, Boolean) -> String = { emoji, _ -> emoji.unicode },
     )
 }
@@ -41,6 +47,7 @@ object NoOpEmojiPickerRenderer : EmojiPickerRenderer {
         onSelectCustomEmoji: (String) -> Unit, // SC
         selectedEmojis: ImmutableSet<String>,
         modifier: Modifier,
+        onSelectCustomEmojiByIdentity: (CustomEmoji) -> Unit, // SC
         contentDescription: @Composable (Emoji, Boolean) -> String,
     ) = Unit
 }

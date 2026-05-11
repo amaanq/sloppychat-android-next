@@ -70,7 +70,7 @@ fun StickerPickerBottomSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StickerPickerContent(
+internal fun StickerPickerContent(
     state: StickerPickerState,
     onStickerClick: (Sticker) -> Unit,
 ) {
