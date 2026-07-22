@@ -87,6 +87,7 @@ fun dynamicSemanticColors(colorScheme: ColorScheme, isLight: Boolean): SemanticC
 
         // Separator
         separatorPrimary = b.divider,
+        separatorSecondary = Color.Transparent,
 
         // Backgrounds – critical (error)
         bgCriticalPrimary = colorScheme.error,
@@ -182,7 +183,6 @@ fun dynamicScThemeExposures(colorScheme: ColorScheme, isLight: Boolean): ScTheme
     val b = DynamicBaseColors(colorScheme, isLight)
     return ScThemeExposures(
         isScTheme = true,
-        horizontalDividerThickness = 0.dp,
         colorOnAccent = b.onAccent,
         bubbleBgIncoming = if (isLight) {
             colorScheme.surfaceContainerHighest

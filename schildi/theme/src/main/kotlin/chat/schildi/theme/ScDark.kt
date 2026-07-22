@@ -58,7 +58,6 @@ internal val scdMaterialColorScheme = darkColorScheme(
 
 internal val scdExposures = ScThemeExposures(
     isScTheme = true,
-    horizontalDividerThickness = 0.dp,
     colorOnAccent = ScColors.colorWhite,
     bubbleBgIncoming = scd_bgFloating,
     bubbleBgOutgoing = scd_bg,
@@ -161,7 +160,7 @@ internal val scdSemanticColors = SemanticColors(
     bgAccentHovered = scd_accent,
     bgAccentPressed = scd_accent,
     separatorPrimary = scd_divider,
-    separatorSecondary = scd_divider,
+    separatorSecondary = DarkColorTokens.colorTransparent,
     // TODO-start
     gradientActionStop1 = DarkColorTokens.colorGreen1100,
     gradientActionStop2 = DarkColorTokens.colorGreen900,
