@@ -57,7 +57,6 @@ internal val sclMaterialColorScheme = lightColorScheme(
 
 internal val sclExposures = ScThemeExposures(
     isScTheme = true,
-    horizontalDividerThickness = 0.dp,
     colorOnAccent = ScColors.colorWhite,
     bubbleBgIncoming = ScColors.colorWhite_ee,
     bubbleBgOutgoing = scl_accent.fakeAlpha(0.12f),
@@ -169,7 +168,7 @@ internal val sclSemanticColors = SemanticColors(
     bgBadgePrimary = scl_bg,
     bgBadgeSecondary = scl_bgFloating,
     separatorPrimary = scl_divider,
-    separatorSecondary = scl_divider,
+    separatorSecondary = LightColorTokens.colorTransparent,
     // TODO-start
     gradientActionStop1 = LightColorTokens.colorGreen500,
     gradientActionStop2 = LightColorTokens.colorGreen700,
