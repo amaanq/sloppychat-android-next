@@ -23,6 +23,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransa
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.test.AN_EVENT_ID
 import io.element.android.libraries.matrix.test.AN_EVENT_ID_2
+import io.element.android.libraries.matrix.test.AN_EVENT_ID_3
 import io.element.android.libraries.matrix.test.A_SESSION_ID_2
 import io.element.android.libraries.matrix.test.A_USER_ID
 import io.element.android.libraries.matrix.test.media.FakeMatrixMediaLoader
@@ -575,6 +576,48 @@ class MediaViewerPresenterTest {
             val finalState = awaitItem()
             assertThat(finalState.currentIndex).isEqualTo(1)
 
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `present - data updates keep the currently selected media`() = runTest {
+        val image1 = aMediaItemImage(eventId = AN_EVENT_ID, mediaSourceUrl = "first")
+        val image2 = aMediaItemImage(eventId = AN_EVENT_ID_2, mediaSourceUrl = "second")
+        val insertedImage = aMediaItemImage(eventId = AN_EVENT_ID_3, mediaSourceUrl = "inserted")
+        val mediaGalleryDataSource = FakeMediaGalleryDataSource(
+            initialData = AsyncData.Success(
+                GroupedMediaItems(
+                    imageAndVideoItems = persistentListOf(image1, image2),
+                    fileItems = persistentListOf(),
+                )
+            ),
+            startLambda = { },
+        )
+        val presenter = createMediaViewerPresenter(
+            localMediaFactory = localMediaFactory,
+            mediaGalleryDataSource = mediaGalleryDataSource,
+        )
+
+        presenter.test {
+            val initialState = awaitFirstItem()
+            initialState.eventSink(MediaViewerEvent.OnNavigateTo(1))
+            val navigatedState = awaitItem()
+            assertThat(navigatedState.currentIndex).isEqualTo(1)
+
+            mediaGalleryDataSource.emitGroupedMediaItems(
+                AsyncData.Success(
+                    GroupedMediaItems(
+                        imageAndVideoItems = persistentListOf(insertedImage, image1, image2),
+                        fileItems = persistentListOf(),
+                    )
+                )
+            )
+
+            val updatedState = awaitItem()
+            assertThat(updatedState.currentIndex).isEqualTo(2)
+            assertThat((updatedState.listData[updatedState.currentIndex] as MediaViewerPageData.MediaViewerData).eventId)
+                .isEqualTo(AN_EVENT_ID_2)
             cancelAndIgnoreRemainingEvents()
         }
     }

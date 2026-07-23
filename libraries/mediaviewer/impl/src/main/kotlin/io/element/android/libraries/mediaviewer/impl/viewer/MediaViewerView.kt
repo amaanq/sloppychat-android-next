@@ -192,10 +192,13 @@ fun MediaViewerView(
             state.listData.size
         }
 
-        LaunchedEffect(pagerState.targetPage, state.currentIndex) {
-            // Only emit an index navigation change when it's triggered by the user scrolling
-            if (pagerState.targetPage != state.currentIndex && pagerState.isScrollInProgress) {
-                state.eventSink(MediaViewerEvent.OnNavigateTo(pagerState.targetPage))
+        LaunchedEffect(pagerState.targetPage, state.currentIndex, state.listData.size) {
+            if (pagerState.targetPage != state.currentIndex && state.currentIndex in state.listData.indices) {
+                if (pagerState.isScrollInProgress) {
+                    state.eventSink(MediaViewerEvent.OnNavigateTo(pagerState.targetPage))
+                } else {
+                    pagerState.requestScrollToPage(state.currentIndex)
+                }
             }
         }
         HorizontalPager(
@@ -204,7 +207,7 @@ fun MediaViewerView(
             reverseLayout = state.reverseLayout,
             // Pre-load previous and next pages
             beyondViewportPageCount = 1,
-            key = { index -> state.listData[index].pagerKey },
+            key = { index -> state.listData[index].compositionKey },
         ) { page ->
             when (val dataForPage = state.listData[page]) {
                 is MediaViewerPageData.Failure -> {
@@ -359,6 +362,12 @@ fun MediaViewerView(
         }
     }
 }
+
+private val MediaViewerPageData.compositionKey: Any
+    get() = when (this) {
+        is MediaViewerPageData.MediaViewerData -> "media:$pagerKey:$eventId:${mediaSource.safeUrl}"
+        else -> pagerKey
+    }
 
 @Composable
 private fun MediaViewerPage(
