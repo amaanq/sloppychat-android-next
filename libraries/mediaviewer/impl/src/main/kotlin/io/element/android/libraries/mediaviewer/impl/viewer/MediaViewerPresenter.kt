@@ -32,6 +32,7 @@ import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatch
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarMessage
 import io.element.android.libraries.designsystem.utils.snackbar.collectSnackbarMessageAsState
 import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsAsState
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -88,14 +89,13 @@ class MediaViewerPresenter(
         }
         val data = dataSource.produceState { flow ->
             flow.collectLatest { new ->
-                val existingItem = value.getOrNull(currentIndex.intValue)
-                val newItem = new.getOrNull(currentIndex.intValue)
-                if (existingItem is MediaViewerPageData.MediaViewerData && existingItem.eventId == eventId && newItem != existingItem) {
-                    currentIndex.intValue = dataSource.findEventIndex(eventId, mediaSource) ?: 0
-                } else if (currentIndex.intValue > 0 && value.firstOrNull() is MediaViewerPageData.Loading &&
-                    new.firstOrNull() !is MediaViewerPageData.Loading) {
-                    // Restore index based on the eventId after the initial items have been loaded
-                    currentIndex.intValue = dataSource.findEventIndex(eventId, mediaSource) ?: 0
+                val selectedMedia = value.getOrNull(currentIndex.intValue) as? MediaViewerPageData.MediaViewerData
+                val selectedMediaIndex = new.findMediaIndex(
+                    eventId = selectedMedia?.eventId ?: eventId,
+                    mediaSource = selectedMedia?.mediaSource ?: mediaSource,
+                )
+                if (selectedMediaIndex != null) {
+                    currentIndex.intValue = selectedMediaIndex
                 }
                 value = new
             }
@@ -339,4 +339,15 @@ private fun MediaViewerEntryPoint.Params.mediaSource() = when (this) {
     is MediaViewerEntryPoint.Params.Avatar -> mediaSource
     is MediaViewerEntryPoint.Params.EventGallery -> null
     is MediaViewerEntryPoint.Params.RoomMedia -> mediaSource
+}
+
+private fun List<MediaViewerPageData>.findMediaIndex(
+    eventId: EventId?,
+    mediaSource: MediaSource?,
+): Int? {
+    return indexOfFirst { item ->
+        item is MediaViewerPageData.MediaViewerData &&
+            item.eventId == eventId &&
+            (mediaSource == null || item.mediaSource == mediaSource)
+    }.takeIf { it >= 0 }
 }
