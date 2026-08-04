@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.libraries.preferences.api)
     implementation(projects.libraries.push.api)
     implementation(projects.libraries.testtags)
+    implementation(libs.serialization.json)
     api(projects.features.roomdetails.api)
     api(projects.libraries.usersearch.api)
     api(projects.services.apperror.api)

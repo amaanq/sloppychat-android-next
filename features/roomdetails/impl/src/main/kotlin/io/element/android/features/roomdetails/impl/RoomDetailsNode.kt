@@ -52,6 +52,7 @@ class RoomDetailsNode(
         fun navigateToRoomMemberList()
         fun navigateToInviteMembers()
         fun navigateToRoomDetailsEdit()
+        fun navigateToScRoomProfile() // SC
         fun navigateToRoomNotificationSettings()
         fun navigateToAvatarPreview(name: String, url: String)
         fun navigateToPollHistory()
@@ -135,6 +136,7 @@ class RoomDetailsNode(
             onPinnedMessagesClick = callback::navigateToPinnedMessagesList,
             onKnockRequestsClick = callback::navigateToKnockRequestsList,
             onSecurityAndPrivacyClick = callback::navigateToSecurityAndPrivacy,
+            onScRoomProfileClick = callback::navigateToScRoomProfile, // SC
             onProfileClick = callback::navigateToRoomMemberDetails,
             onReportRoomClick = callback::navigateToReportRoom,
             leaveRoomView = {

@@ -155,6 +155,9 @@
     <string name="sc_pref_category_composer">Composer</string>
     <string name="sc_pref_slash_commands_title">Slash commands</string>
     <string name="sc_pref_slash_commands_summary">Handle commands like /invite or /notice when a message starts with a slash</string>
+    <string name="sc_room_profile_item">Your profile in this room</string>
+    <string name="sc_room_profile_edit_title">Profile in this room</string>
+    <string name="sc_room_profile_nickname_label">Nickname</string>
     <string name="sc_pref_category_pinned_messages">Pinned messages</string>
     <string name="sc_pref_category_notifications">Notifications</string>
     <string name="sc_pref_category_misc">Misc</string>
