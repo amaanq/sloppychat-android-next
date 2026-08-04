@@ -215,11 +215,17 @@ class FakeBaseRoom(
 
     override suspend fun forceSendSingleReadReceipt(receiptType: ReceiptType, eventId: EventId): Result<Unit> = Result.success(Unit)
 
-    override suspend fun sendRaw(eventType: String, content: String): Result<Unit> = Result.success(Unit)
+    var sendRawLambda: (String, String) -> Result<Unit> = { _, _ -> Result.success(Unit) }
 
-    override suspend fun sendRawState(eventType: String, stateKey: String, content: String): Result<String> = Result.success("")
+    override suspend fun sendRaw(eventType: String, content: String): Result<Unit> = sendRawLambda(eventType, content)
 
-    override suspend fun getRawState(eventType: String, stateKey: String): Result<String?> = Result.success(null)
+    var sendRawStateLambda: (String, String, String) -> Result<String> = { _, _, _ -> Result.success("") }
+
+    override suspend fun sendRawState(eventType: String, stateKey: String, content: String): Result<String> = sendRawStateLambda(eventType, stateKey, content)
+
+    var getRawStateLambda: (String, String) -> Result<String?> = { _, _ -> Result.success(null) }
+
+    override suspend fun getRawState(eventType: String, stateKey: String): Result<String?> = getRawStateLambda(eventType, stateKey)
 
     override suspend fun getRawState(eventType: String): Result<List<String>> = Result.success(emptyList())
 

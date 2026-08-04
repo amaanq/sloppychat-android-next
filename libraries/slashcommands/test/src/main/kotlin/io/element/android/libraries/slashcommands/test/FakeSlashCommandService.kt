@@ -7,6 +7,8 @@
 
 package io.element.android.libraries.slashcommands.test
 
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.slashcommands.api.SlashCommand
 import io.element.android.libraries.slashcommands.api.SlashCommandService
@@ -19,6 +21,7 @@ class FakeSlashCommandService(
     private val parseResult: (CharSequence, String?, Boolean) -> SlashCommand = { _, _, _ -> lambdaError() },
     private val proceedSendMessageResult: (SlashCommand.SlashCommandSendMessage, Timeline) -> Result<Unit> = { _, _ -> lambdaError() },
     private val proceedAdminResult: (SlashCommand.SlashCommandAdmin) -> Result<Unit> = { lambdaError() },
+    private val startDmResult: (UserId) -> Result<RoomId> = { lambdaError() },
 ) : SlashCommandService {
     override suspend fun getSuggestions(text: String, isInThread: Boolean): List<SlashCommandSuggestion> = simulateLongTask {
         getSuggestionsResult(text, isInThread)
@@ -41,5 +44,9 @@ class FakeSlashCommandService(
 
     override suspend fun proceedAdmin(slashCommand: SlashCommand.SlashCommandAdmin): Result<Unit> = simulateLongTask {
         proceedAdminResult(slashCommand)
+    }
+
+    override suspend fun startDm(userId: UserId): Result<RoomId> = simulateLongTask {
+        startDmResult(userId)
     }
 }

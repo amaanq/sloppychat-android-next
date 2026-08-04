@@ -149,6 +149,9 @@ object ScPrefs {
     val ENABLE_CUSTOM_EMOJIS = ScBoolPref("ENABLE_CUSTOM_EMOJIS", true, R.string.sc_pref_custom_emojis_title, R.string.sc_pref_custom_emojis_summary, authorsChoice = true, upstreamChoice = false)
     val ENABLE_STICKER_PICKER = ScBoolPref("ENABLE_STICKER_PICKER", true, R.string.sc_pref_sticker_picker_title, R.string.sc_pref_sticker_picker_summary, authorsChoice = true, upstreamChoice = false, dependencies = ENABLE_CUSTOM_EMOJIS.asDependencies(), disabledValue = false)
 
+    // Composer
+    val SC_SLASH_COMMANDS = ScBoolPref("SC_SLASH_COMMANDS", true, R.string.sc_pref_slash_commands_title, R.string.sc_pref_slash_commands_summary, authorsChoice = true, upstreamChoice = false)
+
     // Advanced theming options - Light theme
     val BUBBLE_BG_LIGHT_OUTGOING = ScColorPref("BUBBLE_BG_LIGHT_OUTGOING", R.string.sc_pref_bubble_color_outgoing_title)
     val BUBBLE_BG_LIGHT_INCOMING = ScColorPref("BUBBLE_BG_LIGHT_INCOMING", R.string.sc_pref_bubble_color_incoming_title)
@@ -266,6 +269,9 @@ object ScPrefs {
             ScPrefCategory(R.string.sc_pref_category_emojis_stickers, null, listOf(
                 ENABLE_CUSTOM_EMOJIS,
                 ENABLE_STICKER_PICKER,
+            )),
+            ScPrefCategory(R.string.sc_pref_category_composer, null, listOf(
+                SC_SLASH_COMMANDS,
             )),
         )),
         ScPrefScreen(R.string.sc_pref_category_notifications, null, listOf(

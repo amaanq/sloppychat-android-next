@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
@@ -354,20 +355,23 @@ fun MessagesView(
                             knockRequestsBannerView = knockRequestsBannerView,
                         )
 
-                        SuggestionsPickerView(
-                            modifier = Modifier
-                                .shadow(10.dp)
-                                .background(ElementTheme.colors.bgCanvasDefault)
-                                .align(Alignment.BottomStart)
-                                .heightIn(max = 230.dp),
-                            roomId = state.roomId,
-                            roomName = state.roomName,
-                            roomAvatarData = state.roomAvatar,
-                            suggestions = state.composerState.suggestions,
-                            onSelectSuggestion = {
-                                state.composerState.eventSink(MessageComposerEvent.InsertSuggestion(it))
-                            }
-                        )
+                        if (state.composerState.suggestions.isNotEmpty()) {
+                            SuggestionsPickerView(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    .shadow(6.dp, RoundedCornerShape(16.dp))
+                                    .background(ElementTheme.colors.bgCanvasDefault, RoundedCornerShape(16.dp))
+                                    .heightIn(max = 280.dp),
+                                roomId = state.roomId,
+                                roomName = state.roomName,
+                                roomAvatarData = state.roomAvatar,
+                                suggestions = state.composerState.suggestions,
+                                onSelectSuggestion = {
+                                    state.composerState.eventSink(MessageComposerEvent.InsertSuggestion(it))
+                                }
+                            )
+                        }
                     }
                 },
                 snackbarHost = {

@@ -116,13 +116,6 @@ enum class FeatureFlags(
         defaultValue = { false },
         isFinished = false,
     ),
-    SlashCommand(
-        key = "feature.slash_command",
-        title = "Parse slash commands in the message composer",
-        description = "Allow parsing slash commands in the message composer and perform action.",
-        defaultValue = { false },
-        isFinished = false,
-    ),
     RoomThreadList(
         key = "feature.room_thread_list",
         title = "Add a list of threads in a room",

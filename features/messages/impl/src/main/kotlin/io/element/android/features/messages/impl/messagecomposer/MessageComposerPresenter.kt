@@ -649,6 +649,19 @@ class MessageComposerPresenter(
                     SlashCommand.DevTools -> {
                         navigator.navigateToDeveloperSettings()
                     }
+                    is SlashCommand.StartDm -> {
+                        slashCommandAction.value = AsyncAction.Loading
+                        slashCommandService.startDm(slashCommand.userId)
+                            .onFailure { cause ->
+                                Timber.e(cause, "Failed to proceed with navigation slash command")
+                                slashCommandAction.value = AsyncAction.Failure(cause)
+                                return@launch
+                            }
+                            .onSuccess { roomId ->
+                                slashCommandAction.value = AsyncAction.Uninitialized
+                                navigator.navigateToRoom(roomId, null, emptyList())
+                            }
+                    }
                 }
                 resetComposer(markdownTextEditorState, richTextEditorState, fromEdit = capturedMode is MessageComposerMode.Edit)
                 return@launch

@@ -7,11 +7,13 @@
 
 package io.element.android.libraries.slashcommands.impl
 
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import dev.zacsweers.metro.ContributesBinding
 import io.element.android.libraries.di.RoomScope
-import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.HomeserverCapabilitiesProvider
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.preferences.api.store.AppPreferencesStore
 import io.element.android.libraries.slashcommands.api.SlashCommand
@@ -28,14 +30,14 @@ class DefaultSlashCommandService(
     private val commandExecutor: CommandExecutor,
     private val stringProvider: StringProvider,
     private val appPreferencesStore: AppPreferencesStore,
-    private val featureFlagService: FeatureFlagService,
+    private val scPreferencesStore: ScPreferencesStore,
     private val capabilitiesProvider: HomeserverCapabilitiesProvider,
 ) : SlashCommandService {
     override suspend fun getSuggestions(
         text: String,
         isInThread: Boolean,
     ): List<SlashCommandSuggestion> {
-        if (!featureFlagService.isFeatureEnabled(FeatureFlags.SlashCommand)) return emptyList()
+        if (!scPreferencesStore.getSetting(ScPrefs.SC_SLASH_COMMANDS)) return emptyList()
         val isDeveloperModeEnabled = appPreferencesStore.isDeveloperModeEnabledFlow().first()
         return Command.entries
             .asSequence()
@@ -101,6 +103,14 @@ class DefaultSlashCommandService(
     ): Result<Unit> {
         return commandExecutor.proceedAdmin(
             slashCommand = slashCommand,
+        )
+    }
+
+    override suspend fun startDm(
+        userId: UserId,
+    ): Result<RoomId> {
+        return commandExecutor.startDm(
+            userId = userId,
         )
     }
 }

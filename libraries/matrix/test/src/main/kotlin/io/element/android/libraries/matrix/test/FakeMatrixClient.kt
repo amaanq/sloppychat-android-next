@@ -176,11 +176,14 @@ class FakeMatrixClient(
     }
 
     // SC additions
-    override suspend fun getAccountData(eventType: String): String? = null
+    var getAccountDataLambda: (String) -> String? = { null }
+    var setAccountDataLambda: (String, String) -> Result<Unit> = { _, _ -> Result.success(Unit) }
+
+    override suspend fun getAccountData(eventType: String): String? = getAccountDataLambda(eventType)
     override suspend fun getGlobalAccountData(): Result<List<AccountDataRawEvent>> = Result.success(emptyList())
     override suspend fun getRoomAccountData(roomId: RoomId): Result<List<AccountDataRawEvent>> = Result.success(emptyList())
     override suspend fun getRoomAccountData(roomId: RoomId, eventType: String): String? = null
-    override suspend fun setAccountData(eventType: String, content: String): Result<Unit> = Result.success(Unit)
+    override suspend fun setAccountData(eventType: String, content: String): Result<Unit> = setAccountDataLambda(eventType, content)
     override suspend fun setRoomAccountData(roomId: RoomId, eventType: String, content: String): Result<Unit> = Result.success(Unit)
     override suspend fun getUrlPreviewJson(url: String): String = "{}"
     override suspend fun shutdownClient() = Unit

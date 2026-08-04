@@ -7,10 +7,9 @@
 
 package io.element.android.libraries.slashcommands.impl
 
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
+import chat.schildi.lib.preferences.ScPreferencesStore
 import com.google.common.truth.Truth.assertThat
-import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
-import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.timeline.MsgType
 import io.element.android.libraries.matrix.test.FakeHomeserverCapabilitiesProvider
@@ -36,11 +35,7 @@ class DefaultSlashCommandServiceTest {
         val sut = createDefaultSlashCommandService(
             commandParser = CommandParser(
                 appPreferencesStore = prefs,
-                featureFlagService = FakeFeatureFlagService(
-                    initialState = mapOf(
-                        FeatureFlags.SlashCommand.key to true,
-                    )
-                ),
+                scPreferencesStore = PreviewScPreferencesStore,
                 stringProvider = stringProvider,
             ),
             stringProvider = stringProvider,
@@ -161,15 +156,11 @@ class DefaultSlashCommandServiceTest {
 
     private fun createDefaultSlashCommandService(
         isFeatureEnabled: Boolean = true,
-        featureFlagService: FeatureFlagService = FakeFeatureFlagService(
-            initialState = mapOf(
-                FeatureFlags.SlashCommand.key to isFeatureEnabled,
-            ),
-        ),
+        scPreferencesStore: ScPreferencesStore = FakeSlashCommandsScPreferencesStore(enabled = isFeatureEnabled),
         appPreferencesStore: AppPreferencesStore = InMemoryAppPreferencesStore(),
         stringProvider: StringProvider = FakeStringProvider(),
         commandParser: CommandParser = createCommandParser(
-            featureFlagService = featureFlagService,
+            scPreferencesStore = scPreferencesStore,
             appPreferencesStore = appPreferencesStore,
             stringProvider = stringProvider,
         ),
@@ -182,7 +173,7 @@ class DefaultSlashCommandServiceTest {
         commandExecutor = commandExecutor,
         stringProvider = stringProvider,
         appPreferencesStore = appPreferencesStore,
-        featureFlagService = featureFlagService,
+        scPreferencesStore = scPreferencesStore,
         capabilitiesProvider = capabilitiesProvider,
     )
 }

@@ -25,11 +25,11 @@ dependencies {
     implementation(projects.libraries.matrix.api)
     api(projects.libraries.slashcommands.api)
     implementation(projects.libraries.di)
-    implementation(projects.libraries.featureflag.api)
+    implementation(projects.schildi.lib)
     implementation(projects.services.toolbox.api)
+    implementation(libs.serialization.json)
 
     testCommonDependencies(libs)
-    testImplementation(projects.libraries.featureflag.test)
     testImplementation(projects.libraries.preferences.test)
     testImplementation(projects.libraries.matrix.test)
     testImplementation(projects.services.toolbox.test)
