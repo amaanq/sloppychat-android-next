@@ -43,6 +43,13 @@
     <string name="slash_command_description_discard_session_not_handled">Only supported in encrypted rooms</string>
     <string name="slash_command_description_leave_room">Leave the current room</string>
     <string name="slash_command_description_upgrade_room">Upgrades a room to a new version</string>
+    <string name="slash_command_description_notice">Sends the given message as a notice</string>
+    <string name="slash_command_description_start_dm">Starts a direct message with the given user</string>
+    <string name="slash_command_description_convert_to_dm">Marks this room as a direct message with the other member</string>
+    <string name="slash_command_description_convert_to_room">Unmarks this room as a direct message</string>
+    <string name="slash_command_description_acl">Manages this room\'s server access control list</string>
+    <string name="slash_command_acl_no_permission">You don\'t have permission to change the server ACL in this room</string>
+    <string name="slash_command_convert_to_dm_ambiguous">Cannot tell which user this room is a direct message with</string>
 
     <string name="common_spoiler">Spoiler</string>
 </resources>

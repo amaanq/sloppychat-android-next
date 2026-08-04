@@ -11,6 +11,7 @@ package io.element.android.features.messages.impl.messagecomposer.suggestions
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,7 +38,6 @@ import io.element.android.libraries.designsystem.components.avatar.anAvatarData
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.preview.USER_NAME_BOB
-import io.element.android.libraries.designsystem.theme.components.HorizontalDivider
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -65,6 +65,7 @@ fun SuggestionsPickerView(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(vertical = 4.dp),
     ) {
         items(
             suggestions,
@@ -78,17 +79,14 @@ fun SuggestionsPickerView(
                 }
             }
         ) {
-            Column(modifier = Modifier.fillParentMaxWidth()) {
-                SuggestionItemView(
-                    suggestion = it,
-                    roomId = roomId.value,
-                    roomName = roomName,
-                    roomAvatar = roomAvatarData,
-                    onSelectSuggestion = onSelectSuggestion,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            }
+            SuggestionItemView(
+                suggestion = it,
+                roomId = roomId.value,
+                roomName = roomName,
+                roomAvatar = roomAvatarData,
+                onSelectSuggestion = onSelectSuggestion,
+                modifier = Modifier.fillParentMaxWidth()
+            )
         }
     }
 }

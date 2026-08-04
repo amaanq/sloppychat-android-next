@@ -7,11 +7,10 @@
 
 package io.element.android.libraries.slashcommands.impl
 
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import dev.zacsweers.metro.Inject
-import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.core.MatrixPatterns
-import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.mxc.isMxcUrl
@@ -26,7 +25,7 @@ import timber.log.Timber
 @Inject
 class CommandParser(
     private val appPreferencesStore: AppPreferencesStore,
-    private val featureFlagService: FeatureFlagService,
+    private val scPreferencesStore: ScPreferencesStore,
     private val stringProvider: StringProvider,
 ) {
     /**
@@ -42,7 +41,7 @@ class CommandParser(
         formattedMessage: String?,
         isInThreadTimeline: Boolean,
     ): SlashCommand {
-        if (!featureFlagService.isFeatureEnabled(FeatureFlags.SlashCommand)) {
+        if (!scPreferencesStore.getSetting(ScPrefs.SC_SLASH_COMMANDS)) {
             return SlashCommand.NotACommand
         }
         // check if it has the Slash marker
@@ -146,6 +145,13 @@ class CommandParser(
                         syntaxError(Command.EMOTE)
                     }
                 }
+                Command.NOTICE.matches(slashCommand) -> {
+                    if (message.isNotEmpty()) {
+                        SlashCommand.SendNotice(message)
+                    } else {
+                        syntaxError(Command.NOTICE)
+                    }
+                }
                 Command.RAINBOW.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
                         SlashCommand.SendRainbow(message)
@@ -166,7 +172,7 @@ class CommandParser(
                         val roomIdOrAlias = RoomIdOrAlias.from(id)
                         if (roomIdOrAlias != null) {
                             SlashCommand.JoinRoom(
-                                RoomIdOrAlias.Id(RoomId(id)),
+                                roomIdOrAlias,
                                 trimParts(textMessage, messageParts.take(2))
                             )
                         } else {
@@ -175,6 +181,33 @@ class CommandParser(
                     } else {
                         syntaxError(Command.JOIN_ROOM)
                     }
+                }
+                Command.START_DM.matches(slashCommand) -> {
+                    parseUserId(messageParts)
+                        ?.let { userId ->
+                            SlashCommand.StartDm(
+                                userId = userId,
+                            )
+                        }
+                        ?: syntaxError(Command.START_DM)
+                }
+                Command.CONVERT_TO_DM.matches(slashCommand) -> {
+                    if (messageParts.size == 1) {
+                        SlashCommand.ConvertToDm
+                    } else {
+                        syntaxError(Command.CONVERT_TO_DM)
+                    }
+                }
+                Command.CONVERT_TO_ROOM.matches(slashCommand) -> {
+                    if (messageParts.size == 1) {
+                        SlashCommand.ConvertToRoom
+                    } else {
+                        syntaxError(Command.CONVERT_TO_ROOM)
+                    }
+                }
+                Command.SERVER_ACL.matches(slashCommand) -> {
+                    parseServerAcl(messageParts.drop(1))
+                        ?: syntaxError(Command.SERVER_ACL)
                 }
                 Command.ROOM_NAME.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
@@ -378,6 +411,30 @@ class CommandParser(
             }
         }
             ?.let(::UserId)
+    }
+
+    private fun parseServerAcl(tokens: List<String>): SlashCommand.UpdateServerAcl? {
+        val buckets = mapOf(
+            "-a" to mutableListOf<String>(),
+            "-d" to mutableListOf(),
+            "-ra" to mutableListOf(),
+            "-rd" to mutableListOf(),
+        )
+        var current: MutableList<String>? = null
+        for (token in tokens) {
+            when {
+                buckets.containsKey(token) -> current = buckets.getValue(token)
+                token.startsWith("-") -> return null
+                else -> current?.add(token) ?: return null
+            }
+        }
+        if (buckets.values.all { it.isEmpty() }) return null
+        return SlashCommand.UpdateServerAcl(
+            allow = buckets.getValue("-a"),
+            deny = buckets.getValue("-d"),
+            removeAllow = buckets.getValue("-ra"),
+            removeDeny = buckets.getValue("-rd"),
+        )
     }
 
     private fun syntaxError(command: Command) = SlashCommand.ErrorSyntax(

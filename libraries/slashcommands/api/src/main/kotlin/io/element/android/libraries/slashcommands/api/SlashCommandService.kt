@@ -7,6 +7,8 @@
 
 package io.element.android.libraries.slashcommands.api
 
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.Timeline
 
 interface SlashCommandService {
@@ -38,4 +40,11 @@ interface SlashCommandService {
     suspend fun proceedAdmin(
         slashCommand: SlashCommand.SlashCommandAdmin,
     ): Result<Unit>
+
+    /**
+     * Find an existing DM with the given user or create one, returning the room to navigate to.
+     */
+    suspend fun startDm(
+        userId: UserId,
+    ): Result<RoomId>
 }

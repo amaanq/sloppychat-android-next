@@ -33,6 +33,12 @@ enum class Command(
         parameters = "<message>",
         description = R.string.slash_command_description_emote,
     ),
+    NOTICE(
+        command = "/notice",
+        parameters = "<message>",
+        description = R.string.slash_command_description_notice,
+        isAllowedInThread = false,
+    ),
     BAN_USER(
         command = "/ban",
         parameters = "<user-id> [reason]",
@@ -84,7 +90,28 @@ enum class Command(
         parameters = "<room-address> [reason]",
         description = R.string.slash_command_description_join_room,
         isAllowedInThread = false,
-        isSupported = false,
+    ),
+    START_DM(
+        command = "/startdm",
+        parameters = "<user-id>",
+        description = R.string.slash_command_description_start_dm,
+        isAllowedInThread = false,
+    ),
+    CONVERT_TO_DM(
+        command = "/converttodm",
+        description = R.string.slash_command_description_convert_to_dm,
+        isAllowedInThread = false,
+    ),
+    CONVERT_TO_ROOM(
+        command = "/converttoroom",
+        description = R.string.slash_command_description_convert_to_room,
+        isAllowedInThread = false,
+    ),
+    SERVER_ACL(
+        command = "/acl",
+        parameters = "[-a server] [-d server] [-ra server] [-rd server]",
+        description = R.string.slash_command_description_acl,
+        isAllowedInThread = false,
     ),
     TOPIC(
         command = "/topic",
@@ -94,7 +121,7 @@ enum class Command(
     ),
     REMOVE_USER(
         command = "/remove",
-        aliases = listOf("/kick"),
+        aliases = listOf("/kick", "/disinvite"),
         parameters = "<user-id> [reason]",
         description = R.string.slash_command_description_remove_user,
     ),
@@ -134,9 +161,6 @@ enum class Command(
         parameters = "<mxc_url>",
         description = R.string.slash_command_description_avatar_for_room,
         isAllowedInThread = false,
-        // Dev command since user has to know the mxc url
-        isDevCommand = true,
-        isSupported = false,
     ),
     RAINBOW(
         command = "/rainbow",
@@ -203,7 +227,6 @@ enum class Command(
         aliases = listOf("/part"),
         description = R.string.slash_command_description_leave_room,
         isAllowedInThread = false,
-        isDevCommand = true,
     ),
     UPGRADE_ROOM(
         command = "/upgraderoom",
