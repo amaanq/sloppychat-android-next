@@ -42,15 +42,15 @@ data class FakeRoomPermissions(
     override fun canOwnUserSendState(stateEvent: StateEventType): Boolean = canSendState(stateEvent)
 
     override fun canOwnUserTriggerRoomNotification(): Boolean = canTriggerRoomNotification
-    override fun canUserBan(userId: UserId): Boolean = canUserBan(userId)
-    override fun canUserInvite(userId: UserId): Boolean = canUserInvite(userId)
-    override fun canUserKick(userId: UserId): Boolean = canUserKick(userId)
-    override fun canUserPinUnpin(userId: UserId): Boolean = canUserPinUnpin(userId)
-    override fun canUserRedactOther(userId: UserId): Boolean = canUserRedactOther(userId)
-    override fun canUserRedactOwn(userId: UserId): Boolean = canUserRedactOwn(userId)
-    override fun canUserSendMessage(userId: UserId, message: MessageEventType): Boolean = canUserSendMessage(userId, message)
-    override fun canUserSendState(userId: UserId, stateEvent: StateEventType): Boolean = canUserSendState(userId, stateEvent)
-    override fun canUserTriggerRoomNotification(userId: UserId): Boolean = canUserTriggerRoomNotification(userId)
+    override fun canUserBan(userId: UserId): Boolean = canUserBan.invoke(userId)
+    override fun canUserInvite(userId: UserId): Boolean = canUserInvite.invoke(userId)
+    override fun canUserKick(userId: UserId): Boolean = canUserKick.invoke(userId)
+    override fun canUserPinUnpin(userId: UserId): Boolean = canUserPinUnpin.invoke(userId)
+    override fun canUserRedactOther(userId: UserId): Boolean = canUserRedactOther.invoke(userId)
+    override fun canUserRedactOwn(userId: UserId): Boolean = canUserRedactOwn.invoke(userId)
+    override fun canUserSendMessage(userId: UserId, message: MessageEventType): Boolean = canUserSendMessage.invoke(userId, message)
+    override fun canUserSendState(userId: UserId, stateEvent: StateEventType): Boolean = canUserSendState.invoke(userId, stateEvent)
+    override fun canUserTriggerRoomNotification(userId: UserId): Boolean = canUserTriggerRoomNotification.invoke(userId)
 
     override fun close() {
         // no-op for the fake
