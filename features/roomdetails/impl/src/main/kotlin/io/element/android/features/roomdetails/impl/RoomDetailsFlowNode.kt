@@ -39,6 +39,7 @@ import io.element.android.features.roomdetails.impl.invite.RoomInviteMembersNode
 import io.element.android.features.roomdetails.impl.members.RoomMemberListNode
 import io.element.android.features.roomdetails.impl.members.details.RoomMemberDetailsNode
 import io.element.android.features.roomdetails.impl.notificationsettings.RoomNotificationSettingsNode
+import io.element.android.features.roomdetails.impl.ownprofile.ScRoomProfileNode
 import io.element.android.features.roomdetailsedit.api.RoomDetailsEditEntryPoint
 import io.element.android.features.securityandprivacy.api.SecurityAndPrivacyEntryPoint
 import io.element.android.features.userprofile.shared.UserProfileNodeHelper
@@ -149,6 +150,9 @@ class RoomDetailsFlowNode(
 
         @Parcelize
         data object SelectNewOwnersWhenLeaving : NavTarget
+
+        @Parcelize
+        data object ScRoomProfile : NavTarget // SC
     }
 
     private val callback: RoomDetailsEntryPoint.Callback = callback()
@@ -186,6 +190,10 @@ class RoomDetailsFlowNode(
 
                     override fun navigateToRoomDetailsEdit() {
                         backstack.push(NavTarget.RoomDetailsEdit)
+                    }
+
+                    override fun navigateToScRoomProfile() {
+                        backstack.push(NavTarget.ScRoomProfile)
                     }
 
                     override fun navigateToInviteMembers() {
@@ -268,6 +276,10 @@ class RoomDetailsFlowNode(
 
             NavTarget.RoomDetailsEdit -> {
                 roomDetailsEditEntryPoint.createNode(this, buildContext)
+            }
+
+            NavTarget.ScRoomProfile -> {
+                createNode<ScRoomProfileNode>(buildContext)
             }
 
             NavTarget.InviteMembers -> {
