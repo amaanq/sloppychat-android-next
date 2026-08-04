@@ -7,10 +7,12 @@
 
 package io.element.android.libraries.slashcommands.impl
 
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
+import chat.schildi.lib.preferences.ScPref
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import com.google.common.truth.Truth.assertThat
-import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
-import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
+import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.UserId
@@ -22,6 +24,9 @@ import io.element.android.libraries.slashcommands.api.MessagePrefix
 import io.element.android.libraries.slashcommands.api.SlashCommand
 import io.element.android.services.toolbox.api.strings.StringProvider
 import io.element.android.services.toolbox.test.strings.FakeStringProvider
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -58,8 +63,9 @@ class CommandParserTest {
         test("/remove $A_USER_ID a reason", SlashCommand.RemoveUser(A_USER_ID, "a reason"))
         // Trim the reason
         test("/remove $A_USER_ID    a    reason    ", SlashCommand.RemoveUser(A_USER_ID, "a    reason"))
-        // Alias
+        // Aliases
         test("/kick $A_USER_ID", SlashCommand.RemoveUser(A_USER_ID, null))
+        test("/disinvite $A_USER_ID", SlashCommand.RemoveUser(A_USER_ID, null))
         // Error
         test("/remove", SlashCommand.ErrorSyntax("A string/remove, /remove <user-id> [reason]"))
     }
@@ -123,6 +129,13 @@ class CommandParserTest {
                 "reason"
             )
         )
+        test(
+            "/join #alias:domain",
+            SlashCommand.JoinRoom(
+                RoomIdOrAlias.Alias(RoomAlias("#alias:domain")),
+                null
+            )
+        )
 
         // invalid join
         test("/join notavalid", SlashCommand.ErrorSyntax("A string/join, /join <room-address> [reason]"))
@@ -184,7 +197,7 @@ class CommandParserTest {
     }
 
     @Test
-    fun parseSlashCommandUpgradeAndCrashAndFeatureFlagAndThreads() = runTest {
+    fun parseSlashCommandUpgradeAndCrashAndSettingAndThreads() = runTest {
         test("/upgraderoom 9", SlashCommand.UpgradeRoom("9"))
         test("/upgraderoom", SlashCommand.ErrorSyntax("A string/upgraderoom, /upgraderoom newVersion"))
 
@@ -197,9 +210,9 @@ class CommandParserTest {
             // expected
         }
 
-        // Feature flag disabled
-        val cpFF = createCommandParser(featureFlagService = FakeFeatureFlagService(initialState = mapOf(FeatureFlags.SlashCommand.key to false)))
-        val res = cpFF.parseSlashCommand("/me test", null, false)
+        // Setting disabled
+        val cpDisabled = createCommandParser(scPreferencesStore = FakeSlashCommandsScPreferencesStore(enabled = false))
+        val res = cpDisabled.parseSlashCommand("/me test", null, false)
         assertThat(res).isEqualTo(SlashCommand.NotACommand)
 
         // Not supported in threads (e.g. /join)
@@ -207,6 +220,58 @@ class CommandParserTest {
         val threadRes = cpThread.parseSlashCommand("/join !roomId:domain", null, true)
         assertThat(threadRes).isInstanceOf(SlashCommand.ErrorCommandNotSupportedInThreads::class.java)
         assertThat((threadRes as SlashCommand.ErrorCommandNotSupportedInThreads).message).isEqualTo("A string/join")
+    }
+
+    @Test
+    fun parseSlashCommandNotice() = runTest {
+        test("/notice psa", SlashCommand.SendNotice("psa"))
+        test("/notice", SlashCommand.ErrorSyntax("A string/notice, /notice <message>"))
+    }
+
+    @Test
+    fun parseSlashCommandStartDm() = runTest {
+        test("/startdm $A_USER_ID", SlashCommand.StartDm(A_USER_ID))
+        test("/startdm", SlashCommand.ErrorSyntax("A string/startdm, /startdm <user-id>"))
+        test("/startdm notauser", SlashCommand.ErrorSyntax("A string/startdm, /startdm <user-id>"))
+    }
+
+    @Test
+    fun parseSlashCommandConvertToDmAndRoom() = runTest {
+        test("/converttodm", SlashCommand.ConvertToDm)
+        test("/converttodm extra", SlashCommand.ErrorSyntax("A string/converttodm, /converttodm"))
+        test("/converttoroom", SlashCommand.ConvertToRoom)
+        test("/converttoroom extra", SlashCommand.ErrorSyntax("A string/converttoroom, /converttoroom"))
+    }
+
+    @Test
+    fun parseSlashCommandAcl() = runTest {
+        val aclSyntaxError = SlashCommand.ErrorSyntax("A string/acl, /acl [-a server] [-d server] [-ra server] [-rd server]")
+        test(
+            "/acl -a matrix.org",
+            SlashCommand.UpdateServerAcl(
+                allow = listOf("matrix.org"),
+                deny = emptyList(),
+                removeAllow = emptyList(),
+                removeDeny = emptyList(),
+            )
+        )
+        test(
+            "/acl -a a.org b.org -d bad.org -ra old.org -rd gone.org",
+            SlashCommand.UpdateServerAcl(
+                allow = listOf("a.org", "b.org"),
+                deny = listOf("bad.org"),
+                removeAllow = listOf("old.org"),
+                removeDeny = listOf("gone.org"),
+            )
+        )
+        // No flags at all
+        test("/acl", aclSyntaxError)
+        // Value before any flag
+        test("/acl matrix.org", aclSyntaxError)
+        // Unknown flag
+        test("/acl -x matrix.org", aclSyntaxError)
+        // Flags without any value
+        test("/acl -a -d", aclSyntaxError)
     }
 
     private suspend fun test(message: String, expectedResult: SlashCommand) {
@@ -218,14 +283,23 @@ class CommandParserTest {
 
 internal fun createCommandParser(
     appPreferencesStore: AppPreferencesStore = InMemoryAppPreferencesStore(),
-    featureFlagService: FeatureFlagService = FakeFeatureFlagService(
-        initialState = mapOf(
-            FeatureFlags.SlashCommand.key to true,
-        ),
-    ),
+    scPreferencesStore: ScPreferencesStore = PreviewScPreferencesStore,
     stringProvider: StringProvider = FakeStringProvider(),
 ) = CommandParser(
     appPreferencesStore = appPreferencesStore,
-    featureFlagService = featureFlagService,
+    scPreferencesStore = scPreferencesStore,
     stringProvider = stringProvider,
 )
+
+internal class FakeSlashCommandsScPreferencesStore(
+    private val enabled: Boolean,
+) : ScPreferencesStore by PreviewScPreferencesStore {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T> settingFlow(scPref: ScPref<T>): Flow<T> = if (scPref === ScPrefs.SC_SLASH_COMMANDS) {
+        flowOf(enabled as T)
+    } else {
+        flowOf(scPref.defaultValue)
+    }
+
+    override suspend fun <T> getSetting(scPref: ScPref<T>): T = settingFlow(scPref).first()
+}

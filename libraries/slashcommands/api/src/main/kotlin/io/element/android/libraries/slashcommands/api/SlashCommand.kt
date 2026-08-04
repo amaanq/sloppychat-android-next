@@ -55,13 +55,23 @@ sealed interface SlashCommand {
     data class ChangeAvatarForRoom(val url: String) : SlashCommandAdmin
     data class SendSpoiler(val message: String) : SlashCommandSendMessage
     data class SendWithPrefix(val prefix: MessagePrefix, val message: CharSequence) : SlashCommandSendMessage
+    data class SendNotice(val message: String) : SlashCommandSendMessage
     data object DiscardSession : SlashCommandAdmin
     data class SendChatEffect(val chatEffect: ChatEffect, val message: String) : SlashCommandSendMessage
     data object LeaveRoom : SlashCommandAdmin
     data class UpgradeRoom(val newVersion: String) : SlashCommandAdmin
+    data object ConvertToDm : SlashCommandAdmin
+    data object ConvertToRoom : SlashCommandAdmin
+    data class UpdateServerAcl(
+        val allow: List<String>,
+        val deny: List<String>,
+        val removeAllow: List<String>,
+        val removeDeny: List<String>,
+    ) : SlashCommandAdmin
 
     data object DevTools : SlashCommandNavigation
     data class ShowUser(val userId: UserId) : SlashCommandNavigation
+    data class StartDm(val userId: UserId) : SlashCommandNavigation
 }
 
 fun SlashCommand.Error.message() = when (this) {

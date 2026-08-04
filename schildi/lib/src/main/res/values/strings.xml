@@ -152,6 +152,9 @@
     <string name="sc_pref_sticker_picker_title">Sticker picker</string>
     <string name="sc_pref_sticker_picker_summary">Show a sticker button in the message composer</string>
     <string name="sc_sticker_picker_title">Stickers</string>
+    <string name="sc_pref_category_composer">Composer</string>
+    <string name="sc_pref_slash_commands_title">Slash commands</string>
+    <string name="sc_pref_slash_commands_summary">Handle commands like /invite or /notice when a message starts with a slash</string>
     <string name="sc_pref_category_pinned_messages">Pinned messages</string>
     <string name="sc_pref_category_notifications">Notifications</string>
     <string name="sc_pref_category_misc">Misc</string>

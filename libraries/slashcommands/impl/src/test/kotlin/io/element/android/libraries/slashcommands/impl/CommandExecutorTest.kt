@@ -10,13 +10,19 @@ package io.element.android.libraries.slashcommands.impl
 import com.google.common.truth.Truth.assertThat
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
+import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.StateEventType
 import io.element.android.libraries.matrix.api.timeline.MsgType
 import io.element.android.libraries.matrix.test.AN_AVATAR_URL
 import io.element.android.libraries.matrix.test.A_MESSAGE
+import io.element.android.libraries.matrix.test.A_ROOM_ID
+import io.element.android.libraries.matrix.test.A_SESSION_ID
 import io.element.android.libraries.matrix.test.A_USER_ID
 import io.element.android.libraries.matrix.test.FakeMatrixClient
 import io.element.android.libraries.matrix.test.room.FakeBaseRoom
 import io.element.android.libraries.matrix.test.room.FakeJoinedRoom
+import io.element.android.libraries.matrix.test.room.aRoomMember
+import io.element.android.libraries.matrix.test.room.powerlevels.FakeRoomPermissions
 import io.element.android.libraries.matrix.test.timeline.FakeTimeline
 import io.element.android.libraries.slashcommands.api.ChatEffect
 import io.element.android.libraries.slashcommands.api.MessagePrefix
@@ -177,10 +183,246 @@ class CommandExecutorTest {
     }
 
     @Test
-    fun `change avatar for room is not supported`() = runTest {
-        val sut = createCommandExecutor()
-        val res = sut.proceedAdmin(SlashCommand.ChangeAvatarForRoom(AN_AVATAR_URL))
+    fun `send notice sends a raw room message with notice msgtype`() = runTest {
+        var capturedType: String? = null
+        var capturedContent: String? = null
+        val baseRoom = FakeBaseRoom().apply {
+            sendRawLambda = { eventType, content ->
+                capturedType = eventType
+                capturedContent = content
+                Result.success(Unit)
+            }
+        }
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedSendMessage(SlashCommand.SendNotice("psa"), FakeTimeline())
+        assertThat(res.isSuccess).isTrue()
+        assertThat(capturedType).isEqualTo("m.room.message")
+        assertThat(capturedContent).isEqualTo("""{"msgtype":"m.notice","body":"psa"}""")
+    }
+
+    @Test
+    fun `change avatar for room preserves the other member content fields`() = runTest {
+        var capturedStateKey: String? = null
+        var capturedContent: String? = null
+        val baseRoom = FakeBaseRoom().apply {
+            getRawStateLambda = { _, _ ->
+                Result.success("""{"membership":"join","displayname":"Nick","avatar_url":"mxc://old"}""")
+            }
+            sendRawStateLambda = { _, stateKey, content ->
+                capturedStateKey = stateKey
+                capturedContent = content
+                Result.success("\$event")
+            }
+        }
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedAdmin(SlashCommand.ChangeAvatarForRoom("mxc://matrix.org/new"))
+        assertThat(res.isSuccess).isTrue()
+        assertThat(capturedStateKey).isEqualTo(A_SESSION_ID.value)
+        assertThat(capturedContent).isEqualTo("""{"membership":"join","displayname":"Nick","avatar_url":"mxc://matrix.org/new"}""")
+    }
+
+    @Test
+    fun `change avatar for room fails when own member event is missing`() = runTest {
+        val baseRoom = FakeBaseRoom().apply {
+            getRawStateLambda = { _, _ -> Result.success(null) }
+        }
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedAdmin(SlashCommand.ChangeAvatarForRoom("mxc://matrix.org/new"))
         assertThat(res.isFailure).isTrue()
+    }
+
+    @Test
+    fun `convert to dm moves the room to the other member entry in m direct`() = runTest {
+        var capturedType: String? = null
+        var capturedContent: String? = null
+        val otherUserId = UserId("@other:server.org")
+        val matrixClient = FakeMatrixClient().apply {
+            getAccountDataLambda = {
+                """{"@third:server.org":["${A_ROOM_ID.value}","!keep:server.org"]}"""
+            }
+            setAccountDataLambda = { eventType, content ->
+                capturedType = eventType
+                capturedContent = content
+                Result.success(Unit)
+            }
+        }
+        val baseRoom = FakeBaseRoom(
+            getMembersResult = {
+                Result.success(
+                    listOf(
+                        aRoomMember(userId = A_SESSION_ID),
+                        aRoomMember(userId = otherUserId),
+                    )
+                )
+            },
+        )
+        val sut = createCommandExecutor(
+            matrixClient = matrixClient,
+            joinedRoom = FakeJoinedRoom(baseRoom = baseRoom),
+        )
+        val res = sut.proceedAdmin(SlashCommand.ConvertToDm)
+        assertThat(res.isSuccess).isTrue()
+        assertThat(capturedType).isEqualTo("m.direct")
+        assertThat(capturedContent).isEqualTo(
+            """{"@third:server.org":["!keep:server.org"],"@other:server.org":["${A_ROOM_ID.value}"]}"""
+        )
+    }
+
+    @Test
+    fun `convert to dm fails when the other member is ambiguous`() = runTest {
+        val baseRoom = FakeBaseRoom(
+            getMembersResult = {
+                Result.success(
+                    listOf(
+                        aRoomMember(userId = A_SESSION_ID),
+                        aRoomMember(userId = UserId("@other:server.org")),
+                        aRoomMember(userId = UserId("@third:server.org")),
+                    )
+                )
+            },
+        )
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedAdmin(SlashCommand.ConvertToDm)
+        assertThat(res.isFailure).isTrue()
+    }
+
+    @Test
+    fun `convert to room removes the room from every m direct entry`() = runTest {
+        var capturedContent: String? = null
+        val matrixClient = FakeMatrixClient().apply {
+            getAccountDataLambda = {
+                """{"@other:server.org":["${A_ROOM_ID.value}"],"@third:server.org":["!keep:server.org","${A_ROOM_ID.value}"]}"""
+            }
+            setAccountDataLambda = { _, content ->
+                capturedContent = content
+                Result.success(Unit)
+            }
+        }
+        val sut = createCommandExecutor(matrixClient = matrixClient)
+        val res = sut.proceedAdmin(SlashCommand.ConvertToRoom)
+        assertThat(res.isSuccess).isTrue()
+        assertThat(capturedContent).isEqualTo(
+            """{"@other:server.org":[],"@third:server.org":["!keep:server.org"]}"""
+        )
+    }
+
+    @Test
+    fun `update server acl merges with the existing state event`() = runTest {
+        var capturedStateKey: String? = null
+        var capturedContent: String? = null
+        val baseRoom = FakeBaseRoom(
+            roomPermissions = FakeRoomPermissions(
+                canUserSendState = { _, stateEvent -> stateEvent == StateEventType.RoomServerAcl },
+            ),
+        ).apply {
+            getRawStateLambda = { _, _ ->
+                Result.success("""{"allow":["*"],"deny":["old.org"],"allow_ip_literals":false}""")
+            }
+            sendRawStateLambda = { _, stateKey, content ->
+                capturedStateKey = stateKey
+                capturedContent = content
+                Result.success("\$event")
+            }
+        }
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedAdmin(
+            SlashCommand.UpdateServerAcl(
+                allow = emptyList(),
+                deny = listOf("bad.org"),
+                removeAllow = emptyList(),
+                removeDeny = listOf("old.org"),
+            )
+        )
+        assertThat(res.isSuccess).isTrue()
+        assertThat(capturedStateKey).isEmpty()
+        assertThat(capturedContent).isEqualTo(
+            """{"allow":["*"],"deny":["bad.org"],"allow_ip_literals":false}"""
+        )
+    }
+
+    @Test
+    fun `update server acl never writes an empty allow list`() = runTest {
+        var capturedContent: String? = null
+        val baseRoom = FakeBaseRoom(
+            roomPermissions = FakeRoomPermissions(
+                canUserSendState = { _, _ -> true },
+            ),
+        ).apply {
+            getRawStateLambda = { _, _ -> Result.success(null) }
+            sendRawStateLambda = { _, _, content ->
+                capturedContent = content
+                Result.success("\$event")
+            }
+        }
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedAdmin(
+            SlashCommand.UpdateServerAcl(
+                allow = emptyList(),
+                deny = listOf("bad.org"),
+                removeAllow = emptyList(),
+                removeDeny = emptyList(),
+            )
+        )
+        assertThat(res.isSuccess).isTrue()
+        assertThat(capturedContent).isEqualTo("""{"allow":["*"],"deny":["bad.org"]}""")
+    }
+
+    @Test
+    fun `update server acl fails without the required power level`() = runTest {
+        var sendRawStateCalled = false
+        val baseRoom = FakeBaseRoom(
+            roomPermissions = FakeRoomPermissions(
+                canUserSendState = { _, _ -> false },
+            ),
+        ).apply {
+            sendRawStateLambda = { _, _, _ ->
+                sendRawStateCalled = true
+                Result.success("\$event")
+            }
+        }
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedAdmin(
+            SlashCommand.UpdateServerAcl(
+                allow = listOf("matrix.org"),
+                deny = emptyList(),
+                removeAllow = emptyList(),
+                removeDeny = emptyList(),
+            )
+        )
+        assertThat(res.isFailure).isTrue()
+        assertThat(sendRawStateCalled).isFalse()
+    }
+
+    @Test
+    fun `start dm returns the existing dm room`() = runTest {
+        val matrixClient = FakeMatrixClient().apply {
+            givenFindDmResult(Result.success(A_ROOM_ID))
+        }
+        val sut = createCommandExecutor(matrixClient = matrixClient)
+        val res = sut.startDm(A_USER_ID)
+        assertThat(res.getOrNull()).isEqualTo(A_ROOM_ID)
+    }
+
+    @Test
+    fun `start dm creates a dm when none exists`() = runTest {
+        val createdRoomId = RoomId("!created:server.org")
+        val matrixClient = FakeMatrixClient().apply {
+            givenFindDmResult(Result.success(null))
+            givenCreateDmResult(Result.success(createdRoomId))
+        }
+        val sut = createCommandExecutor(matrixClient = matrixClient)
+        val res = sut.startDm(A_USER_ID)
+        assertThat(res.getOrNull()).isEqualTo(createdRoomId)
+    }
+
+    @Test
+    fun `change avatar for room is supported`() = runTest {
+        val baseRoom = FakeBaseRoom().apply {
+            getRawStateLambda = { _, _ -> Result.success("""{"membership":"join"}""") }
+        }
+        val sut = createCommandExecutor(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        val res = sut.proceedAdmin(SlashCommand.ChangeAvatarForRoom(AN_AVATAR_URL))
+        assertThat(res.isSuccess).isTrue()
     }
 
     @Test
