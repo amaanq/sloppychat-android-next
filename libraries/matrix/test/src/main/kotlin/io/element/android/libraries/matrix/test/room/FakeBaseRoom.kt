@@ -229,7 +229,9 @@ class FakeBaseRoom(
 
     override suspend fun getRawState(eventType: String): Result<List<String>> = Result.success(emptyList())
 
-    override suspend fun fetchFullRoomState(): Result<List<String>> = Result.success(emptyList())
+    var fetchFullRoomStateLambda: () -> Result<List<String>> = { Result.success(emptyList()) }
+
+    override suspend fun fetchFullRoomState(): Result<List<String>> = fetchFullRoomStateLambda()
 
     override suspend fun setRoomUserDisplayName(displayName: String?): Result<Unit> = Result.success(Unit)
 }

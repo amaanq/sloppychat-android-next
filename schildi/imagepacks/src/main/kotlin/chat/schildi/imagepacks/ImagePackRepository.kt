@@ -200,8 +200,22 @@ class ImagePackRepository(
             }
         }
 
-        Timber.d("ImagePacks: getAllPacks returned ${packs.size} total packs (hadErrors=$hadErrors)")
-        return PackLoadResult(packs = packs, hadErrors = hadErrors)
+        val distinctPacks = packs.distinctBy { it.identity() }
+        Timber.d(
+            "ImagePacks: getAllPacks returned ${distinctPacks.size} total packs " +
+                "(${packs.size - distinctPacks.size} duplicates dropped, hadErrors=$hadErrors)"
+        )
+        return PackLoadResult(packs = distinctPacks, hadErrors = hadErrors)
+    }
+
+    /**
+     * A room listed in the user's emote rooms is also loaded as a room pack when it is the
+     * room being viewed, so the same state event can arrive from two sources.
+     */
+    private fun ResolvedImagePack.identity(): String = when (val source = source) {
+        is ImagePackSource.UserAccount -> "user"
+        is ImagePackSource.Room -> "room:${source.roomId.value}:$stateKey"
+        is ImagePackSource.EmoteRoom -> "room:${source.roomId.value}:$stateKey"
     }
 
     /**

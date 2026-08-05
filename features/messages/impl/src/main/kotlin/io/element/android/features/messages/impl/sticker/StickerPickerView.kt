@@ -25,8 +25,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.libraries.designsystem.theme.components.ModalBottomSheet
 import io.element.android.libraries.designsystem.theme.components.Text
@@ -41,6 +45,7 @@ import io.element.android.libraries.designsystem.theme.components.hide
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -211,20 +216,10 @@ internal fun StickerPickerContent(
                     )
                 }
                 items(pack.stickers, key = { "sticker_${packIdx}_${it.shortcode}" }) { sticker ->
-                    Box(
-                        modifier = Modifier
-                            .size(84.dp)
-                            .clickable { onStickerClick(sticker) }
-                            .padding(4.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        AsyncImage(
-                            model = MediaRequestData(MediaSource(sticker.url), MediaRequestData.Kind.Content),
-                            contentDescription = sticker.body ?: sticker.shortcode,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit,
-                        )
-                    }
+                    StickerItem(
+                        sticker = sticker,
+                        onClick = { onStickerClick(sticker) },
+                    )
                 }
             }
         }
@@ -241,6 +236,55 @@ internal fun StickerPickerContent(
             )
         }
 
+    }
+}
+
+@Composable
+private fun StickerItem(
+    sticker: Sticker,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(84.dp)
+            .clickable(onClick = onClick)
+            .padding(4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        var failed by remember(sticker.url) { mutableStateOf(false) }
+        if (failed) {
+            // A sticker that never resolves would otherwise occupy an invisible
+            // cell, so a whole broken pack reads as unexplained blank space.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(ElementTheme.colors.bgSubtleSecondary),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = sticker.shortcode.take(2).ifBlank { "?" },
+                    style = ElementTheme.typography.fontBodySmRegular,
+                    color = ElementTheme.colors.textSecondary,
+                )
+            }
+        } else {
+            AsyncImage(
+                model = MediaRequestData(MediaSource(sticker.url), MediaRequestData.Kind.Content),
+                contentDescription = sticker.body ?: sticker.shortcode,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+                onState = { state ->
+                    if (state is AsyncImagePainter.State.Error) {
+                        Timber.w(
+                            state.result.throwable,
+                            "ImagePacks: sticker '${sticker.shortcode}' failed to load from ${sticker.url}",
+                        )
+                        failed = true
+                    }
+                },
+            )
+        }
     }
 }
 
