@@ -1,4 +1,5 @@
 import extension.setupDependencyInjection
+import extension.testCommonDependencies
 
 plugins {
     id("io.element.android-library")
@@ -17,4 +18,7 @@ dependencies {
     implementation(libs.serialization.json)
     implementation(libs.coroutines.core)
     implementation(libs.timber)
+
+    testCommonDependencies(libs)
+    testImplementation(projects.libraries.matrix.test)
 }

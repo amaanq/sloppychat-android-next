@@ -50,7 +50,7 @@ class StickerPickerPresenter(
                 packs = stickerPacks.map { (resolved, images) ->
                     Timber.d("ImagePacks: Pack '${resolved.pack.displayName}' has ${images.size} stickers")
                     StickerPack(
-                        name = resolved.pack.displayName ?: "Stickers",
+                        name = resolved.pack.displayName?.takeIf { it.isNotBlank() } ?: "Stickers",
                         avatarUrl = resolved.pack.avatarUrl,
                         stickers = images.map { image ->
                             Sticker(
