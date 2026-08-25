@@ -202,6 +202,26 @@ class ScRoomProfilePresenter(
         }.runCatchingUpdatingState(action)
     }
 
+    /**
+     * get_state_event_raw serialises the whole event, so the content has to be unwrapped, and
+     * sliding sync lazy-loads members so the state store often has no m.room.member for us
+     * at all, hence the full state fetch as a fallback.
+     */
+    private suspend fun JoinedRoom.ownMemberContent(): JsonObject {
+        val ownUserId = sessionId.value
+        getRawState(EVENT_TYPE_ROOM_MEMBER, ownUserId).getOrNull()?.let {
+            return lenientJson.parseToJsonElement(it).jsonObject.stateEventContent()
+        }
+        val fullState = fetchFullRoomState().getOrThrow()
+        for (eventJson in fullState) {
+            val parsed = runCatching { lenientJson.parseToJsonElement(eventJson).jsonObject }.getOrNull() ?: continue
+            if (parsed["type"]?.jsonPrimitive?.content != EVENT_TYPE_ROOM_MEMBER) continue
+            if (parsed["state_key"]?.jsonPrimitive?.content != ownUserId) continue
+            parsed["content"]?.jsonObject?.let { return it }
+        }
+        error("No m.room.member event found for $ownUserId in ${roomId.value}")
+    }
+
     private suspend fun uploadAvatar(avatarUri: Uri, mimeType: String): String {
         val preprocessed = mediaPreProcessor.process(
             uri = avatarUri,
