@@ -1,6 +1,7 @@
 package io.element.android.features.roomdetails.impl.ownprofile
 
 import android.Manifest
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,10 +16,12 @@ import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.androidutils.file.TemporaryUriDeleter
+import io.element.android.libraries.androidutils.file.avatarUploadMimeType
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.architecture.runCatchingUpdatingState
 import io.element.android.libraries.core.mimetype.MimeTypes
+import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.ui.media.AvatarAction
@@ -44,6 +47,7 @@ private val lenientJson = Json {
 
 @Inject
 class ScRoomProfilePresenter(
+    @ApplicationContext private val context: Context,
     private val room: JoinedRoom,
     private val matrixClient: MatrixClient,
     private val mediaPickerProvider: PickerProvider,
@@ -125,6 +129,7 @@ class ScRoomProfilePresenter(
                     newDisplayName = displayNameEdited,
                     originalDisplayName = originalDisplayName,
                     newAvatarUri = avatarUriEdited,
+                    newAvatarMimeType = avatarUriEdited?.toUri()?.let { context.avatarUploadMimeType(it) } ?: MimeTypes.Jpeg,
                     originalAvatarUrl = originalAvatarUrl,
                     action = saveAction,
                 )
@@ -169,6 +174,7 @@ class ScRoomProfilePresenter(
         newDisplayName: String,
         originalDisplayName: String,
         newAvatarUri: String?,
+        newAvatarMimeType: String,
         originalAvatarUrl: String?,
         action: MutableState<AsyncAction<Unit>>,
     ) = launch {
@@ -189,7 +195,7 @@ class ScRoomProfilePresenter(
                 if (newAvatarUri == null) {
                     content.remove("avatar_url")
                 } else {
-                    content["avatar_url"] = JsonPrimitive(uploadAvatar(newAvatarUri.toUri()))
+                    content["avatar_url"] = JsonPrimitive(uploadAvatar(newAvatarUri.toUri(), newAvatarMimeType))
                 }
             }
             room.sendRawState(EVENT_TYPE_ROOM_MEMBER, ownUserId, JsonObject(content).toString()).getOrThrow()
@@ -197,13 +203,13 @@ class ScRoomProfilePresenter(
         }.runCatchingUpdatingState(action)
     }
 
-    private suspend fun uploadAvatar(avatarUri: Uri): String {
+    private suspend fun uploadAvatar(avatarUri: Uri, mimeType: String): String {
         val preprocessed = mediaPreProcessor.process(
             uri = avatarUri,
-            mimeType = MimeTypes.Jpeg,
+            mimeType = mimeType,
             deleteOriginal = false,
             mediaOptimizationConfig = mediaOptimizationConfigProvider.get(),
         ).getOrThrow()
-        return matrixClient.uploadMedia(MimeTypes.Jpeg, preprocessed.file.readBytes()).getOrThrow()
+        return matrixClient.uploadMedia(mimeType, preprocessed.file.readBytes()).getOrThrow()
     }
 }

@@ -74,6 +74,8 @@ class RoomDetailsEditPresenterTest {
         every { roomAvatarUri.toString() } returns AN_AVATAR_URL
         every { Uri.parse(ANOTHER_AVATAR_URL) } returns anotherAvatarUri
         every { anotherAvatarUri.toString() } returns ANOTHER_AVATAR_URL
+        every { roomAvatarUri.scheme } returns null
+        every { anotherAvatarUri.scheme } returns null
     }
 
     @After
@@ -88,6 +90,7 @@ class RoomDetailsEditPresenterTest {
         mediaOptimizationConfigProvider: FakeMediaOptimizationConfigProvider = FakeMediaOptimizationConfigProvider(),
     ): RoomDetailsEditPresenter {
         return RoomDetailsEditPresenter(
+            context = mockk(),
             room = room,
             mediaPickerProvider = fakePickerProvider,
             mediaPreProcessor = fakeMediaPreProcessor,

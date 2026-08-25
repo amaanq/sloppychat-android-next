@@ -9,6 +9,7 @@
 package io.element.android.features.roomdetailsedit.impl
 
 import android.Manifest
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,11 +27,13 @@ import dev.zacsweers.metro.Inject
 import io.element.android.features.roomdetailsedit.api.RoomDetailsEditPermissions
 import io.element.android.features.roomdetailsedit.api.roomDetailsEditPermissions
 import io.element.android.libraries.androidutils.file.TemporaryUriDeleter
+import io.element.android.libraries.androidutils.file.avatarUploadMimeType
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.architecture.runCatchingUpdatingState
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.core.mimetype.MimeTypes
+import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsAsState
 import io.element.android.libraries.matrix.ui.media.AvatarAction
@@ -46,6 +49,7 @@ import timber.log.Timber
 
 @Inject
 class RoomDetailsEditPresenter(
+    @ApplicationContext private val context: Context,
     private val room: JoinedRoom,
     private val mediaPickerProvider: PickerProvider,
     private val mediaPreProcessor: MediaPreProcessor,
@@ -142,6 +146,7 @@ class RoomDetailsEditPresenter(
                     newTopicTrimmed = roomTopicEdited.trim(),
                     currentAvatar = roomAvatarUri?.toUri(),
                     newAvatarUri = roomAvatarUriEdited?.toUri(),
+                    newAvatarMimeType = roomAvatarUriEdited?.toUri()?.let { context.avatarUploadMimeType(it) } ?: MimeTypes.Jpeg,
                     action = saveAction,
                 )
                 is RoomDetailsEditEvent.HandleAvatarAction -> {
@@ -196,6 +201,7 @@ class RoomDetailsEditPresenter(
         newTopicTrimmed: String,
         currentAvatar: Uri?,
         newAvatarUri: Uri?,
+        newAvatarMimeType: String,
         action: MutableState<AsyncAction<Unit>>,
     ) = launch {
         val results = mutableListOf<Result<Unit>>()
@@ -211,7 +217,7 @@ class RoomDetailsEditPresenter(
                 })
             }
             if (newAvatarUri != currentAvatar) {
-                results.add(updateAvatar(newAvatarUri).onFailure {
+                results.add(updateAvatar(newAvatarUri, newAvatarMimeType).onFailure {
                     Timber.e(it, "Failed to update avatar")
                 })
             }
@@ -219,16 +225,16 @@ class RoomDetailsEditPresenter(
         }.runCatchingUpdatingState(action)
     }
 
-    private suspend fun updateAvatar(avatarUri: Uri?): Result<Unit> {
+    private suspend fun updateAvatar(avatarUri: Uri?, mimeType: String): Result<Unit> {
         return runCatchingExceptions {
             if (avatarUri != null) {
                 val preprocessed = mediaPreProcessor.process(
                     uri = avatarUri,
-                    mimeType = MimeTypes.Jpeg,
+                    mimeType = mimeType,
                     deleteOriginal = false,
                     mediaOptimizationConfig = mediaOptimizationConfigProvider.get(),
                 ).getOrThrow()
-                room.updateAvatar(MimeTypes.Jpeg, preprocessed.file.readBytes()).getOrThrow()
+                room.updateAvatar(mimeType, preprocessed.file.readBytes()).getOrThrow()
             } else {
                 room.removeAvatar().getOrThrow()
             }
