@@ -61,6 +61,8 @@ class ScRoomProfilePresenterTest {
         every { avatarUri.toString() } returns AN_AVATAR_URL
         every { Uri.parse(A_PICKED_URI) } returns pickedUri
         every { pickedUri.toString() } returns A_PICKED_URI
+        every { avatarUri.scheme } returns null
+        every { pickedUri.scheme } returns null
     }
 
     @After
@@ -89,6 +91,7 @@ class ScRoomProfilePresenterTest {
         temporaryUriDeleter: TemporaryUriDeleter = FakeTemporaryUriDeleter(lambdaRecorder<Uri?, Unit> {}),
     ): ScRoomProfilePresenter {
         return ScRoomProfilePresenter(
+            context = mockk(),
             room = room,
             matrixClient = matrixClient,
             mediaPickerProvider = fakePickerProvider,

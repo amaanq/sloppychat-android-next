@@ -66,6 +66,8 @@ class EditUserProfilePresenterTest {
         every { userAvatarUri.toString() } returns AN_AVATAR_URL
         every { Uri.parse(ANOTHER_AVATAR_URL) } returns anotherAvatarUri
         every { anotherAvatarUri.toString() } returns ANOTHER_AVATAR_URL
+        every { userAvatarUri.scheme } returns null
+        every { anotherAvatarUri.scheme } returns null
     }
 
     @After
@@ -82,6 +84,7 @@ class EditUserProfilePresenterTest {
         mediaOptimizationConfigProvider: FakeMediaOptimizationConfigProvider = FakeMediaOptimizationConfigProvider(),
     ): EditUserProfilePresenter {
         return EditUserProfilePresenter(
+            context = mockk(),
             matrixClient = matrixClient,
             navigator = navigator,
             matrixUser = matrixUser,

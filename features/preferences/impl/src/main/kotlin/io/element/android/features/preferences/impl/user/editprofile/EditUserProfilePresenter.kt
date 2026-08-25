@@ -8,6 +8,7 @@
 
 package io.element.android.features.preferences.impl.user.editprofile
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,11 +26,13 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.libraries.androidutils.file.TemporaryUriDeleter
+import io.element.android.libraries.androidutils.file.avatarUploadMimeType
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.architecture.runCatchingUpdatingState
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.core.mimetype.MimeTypes
+import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.libraries.matrix.ui.media.AvatarAction
@@ -47,6 +50,7 @@ import timber.log.Timber
 class EditUserProfilePresenter(
     @Assisted private val matrixUser: MatrixUser,
     @Assisted private val navigator: EditUserProfileNavigator,
+    @ApplicationContext private val context: Context,
     private val matrixClient: MatrixClient,
     private val mediaPickerProvider: PickerProvider,
     private val mediaPreProcessor: MediaPreProcessor,
@@ -126,6 +130,7 @@ class EditUserProfilePresenter(
                 is EditUserProfileEvent.Save -> localCoroutineScope.saveChanges(
                     name = userDisplayName,
                     avatarUri = userAvatarUri?.toUri(),
+                    avatarMimeType = userAvatarUri?.toUri()?.let { context.avatarUploadMimeType(it) } ?: MimeTypes.Jpeg,
                     currentUser = matrixUser,
                     action = saveAction,
                 )
@@ -193,6 +198,7 @@ class EditUserProfilePresenter(
     private fun CoroutineScope.saveChanges(
         name: String?,
         avatarUri: Uri?,
+        avatarMimeType: String,
         currentUser: MatrixUser,
         action: MutableState<AsyncAction<Unit>>,
     ) = launch {
@@ -204,7 +210,7 @@ class EditUserProfilePresenter(
                 })
             }
             if (avatarUri?.toString()?.trim() != currentUser.avatarUrl?.trim()) {
-                results.add(updateAvatar(avatarUri).onFailure {
+                results.add(updateAvatar(avatarUri, avatarMimeType).onFailure {
                     Timber.e(it, "Failed to update user's avatar")
                 })
             }
@@ -212,16 +218,16 @@ class EditUserProfilePresenter(
         }.runCatchingUpdatingState(action)
     }
 
-    private suspend fun updateAvatar(avatarUri: Uri?): Result<Unit> {
+    private suspend fun updateAvatar(avatarUri: Uri?, mimeType: String): Result<Unit> {
         return runCatchingExceptions {
             if (avatarUri != null) {
                 val preprocessed = mediaPreProcessor.process(
                     uri = avatarUri,
-                    mimeType = MimeTypes.Jpeg,
+                    mimeType = mimeType,
                     deleteOriginal = false,
                     mediaOptimizationConfig = mediaOptimizationConfigProvider.get(),
                 ).getOrThrow()
-                matrixClient.uploadAvatar(MimeTypes.Jpeg, preprocessed.file.readBytes()).getOrThrow()
+                matrixClient.uploadAvatar(mimeType, preprocessed.file.readBytes()).getOrThrow()
             } else {
                 matrixClient.removeAvatar().getOrThrow()
             }
