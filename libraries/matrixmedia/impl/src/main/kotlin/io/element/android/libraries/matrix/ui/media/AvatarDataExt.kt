@@ -7,12 +7,22 @@
 
 package io.element.android.libraries.matrix.ui.media
 
+import io.element.android.libraries.core.mimetype.MimeTypes
 import io.element.android.libraries.designsystem.components.avatar.AvatarData
 import io.element.android.libraries.matrix.api.media.MediaSource
 
-internal fun AvatarData.toMediaRequestData(): MediaRequestData {
+/**
+ * @param animated when true, request the original upload instead of a server thumbnail. The
+ * /thumbnail endpoint only ever returns a still frame, so an animated avatar cannot animate
+ * unless the original bytes reach the decoder.
+ */
+internal fun AvatarData.toMediaRequestData(animated: Boolean = false): MediaRequestData {
     return MediaRequestData(
         source = url?.let { MediaSource(it) },
-        kind = MediaRequestData.Kind.Thumbnail(AVATAR_THUMBNAIL_SIZE_IN_PIXEL)
+        kind = if (animated) {
+            MediaRequestData.Kind.File(fileName = "avatar", mimeType = MimeTypes.Images)
+        } else {
+            MediaRequestData.Kind.Thumbnail(AVATAR_THUMBNAIL_SIZE_IN_PIXEL)
+        }
     )
 }

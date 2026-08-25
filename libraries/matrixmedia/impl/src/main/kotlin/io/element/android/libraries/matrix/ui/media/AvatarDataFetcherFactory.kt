@@ -16,7 +16,8 @@ import io.element.android.libraries.designsystem.components.avatar.AvatarData
 import io.element.android.libraries.matrix.api.media.MatrixMediaLoader
 
 internal class AvatarDataFetcherFactory(
-    private val matrixMediaLoader: MatrixMediaLoader
+    private val matrixMediaLoader: MatrixMediaLoader,
+    private val animateAvatars: () -> Boolean = { false },
 ) : Fetcher.Factory<AvatarData> {
     override fun create(
         data: AvatarData,
@@ -27,7 +28,7 @@ internal class AvatarDataFetcherFactory(
             data.url == null -> null
             data.url?.startsWith("mxc") == true -> CoilMediaFetcher(
                 mediaLoader = matrixMediaLoader,
-                mediaData = data.toMediaRequestData(),
+                mediaData = data.toMediaRequestData(animated = animateAvatars()),
             )
             else -> {
                 // If the URL does not use the mxc scheme, it might be a local one using `content://`, try using a fallback fetcher

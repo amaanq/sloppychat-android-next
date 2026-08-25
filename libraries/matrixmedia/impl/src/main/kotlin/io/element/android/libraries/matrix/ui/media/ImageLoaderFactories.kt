@@ -10,6 +10,8 @@ package io.element.android.libraries.matrix.ui.media
 
 import android.content.Context
 import android.os.Build
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import coil3.ImageLoader
 import coil3.gif.AnimatedImageDecoder
 import coil3.gif.GifDecoder
@@ -30,7 +32,12 @@ interface ImageLoaderFactory {
 class DefaultImageLoaderFactory(
     @ApplicationContext private val context: Context,
     private val okHttpClient: () -> OkHttpClient,
+    private val scPreferencesStore: ScPreferencesStore,
 ) : ImageLoaderFactory {
+    private val animateAvatars: () -> Boolean = {
+        scPreferencesStore.getCachedOrDefaultValue(ScPrefs.ANIMATE_AVATARS)
+    }
+
     private val okHttpNetworkFetcherFactory = OkHttpNetworkFetcherFactory(
         callFactory = {
             // Use newBuilder, see https://coil-kt.github.io/coil/network/#using-a-custom-okhttpclient
@@ -58,9 +65,9 @@ class DefaultImageLoaderFactory(
                 } else {
                     add(GifDecoder.Factory())
                 }
-                add(AvatarDataKeyer())
+                add(AvatarDataKeyer(animateAvatars))
                 add(MediaRequestDataKeyer())
-                add(AvatarDataFetcherFactory(matrixMediaLoader))
+                add(AvatarDataFetcherFactory(matrixMediaLoader, animateAvatars))
                 add(MediaRequestDataFetcherFactory(matrixMediaLoader))
             }
             .build()

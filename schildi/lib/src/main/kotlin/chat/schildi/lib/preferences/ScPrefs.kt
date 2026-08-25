@@ -29,6 +29,7 @@ object ScPrefs {
     val MATERIAL_YOU = ScBoolPref("MATERIAL_YOU", false, R.string.sc_pref_material_you_title, R.string.sc_pref_material_you_summary, upstreamChoice = false, authorsChoice = false)
     val EL_TYPOGRAPHY = ScBoolPref("EL_TYPOGRAPHY", false, R.string.sc_pref_el_typography_title, R.string.sc_pref_el_typography_summary, upstreamChoice = true)
     val TWO_INITIALS_AVATAR_FALLBACK = ScBoolPref("TWO_INITIALS_AVATAR_FALLBACK", false, R.string.sc_pref_two_initials_avatar_fallback_title, R.string.sc_pref_two_initials_avatar_fallback_summary, upstreamChoice = false, authorsChoice = true)
+    val ANIMATE_AVATARS = ScBoolPref("ANIMATE_AVATARS", true, R.string.sc_pref_animate_avatars_title, R.string.sc_pref_animate_avatars_summary, upstreamChoice = false, authorsChoice = true)
 
     // General behavior
     val FAST_TRANSITIONS = ScBoolPref("FAST_TRANSITIONS", true, R.string.sc_pref_fast_transitions_title, R.string.sc_pref_fast_transitions_summary, upstreamChoice = false)
@@ -186,6 +187,7 @@ object ScPrefs {
                 MATERIAL_YOU,
                 EL_TYPOGRAPHY,
                 TWO_INITIALS_AVATAR_FALLBACK,
+                ANIMATE_AVATARS,
                 ScPrefScreen(R.string.sc_pref_screen_advanced_theming_title, R.string.sc_pref_screen_advanced_theming_summary, listOf(
                     SC_RESTORE_ADVANCED_THEME_DEFAULTS,
                     scTweaksAdvancedTheming,
