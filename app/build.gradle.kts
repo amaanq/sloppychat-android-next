@@ -44,8 +44,8 @@ android {
     defaultConfig {
         // applicationId = BuildTimeConfig.APPLICATION_ID
         applicationId = "chat.sloppy.android"
-        versionCode = 1231
-        versionName = "0.11.7-ex_26_8_0"
+        versionCode = 1233
+        versionName = "0.11.9-ex_26_8_0"
         targetSdk = Versions.TARGET_SDK
 
         // Keep abiFilter for the universalApk
@@ -288,8 +288,8 @@ android {
         // Common upstream overrides across all sc variants - only one flavor for this dimension to ensure it's picked up!
         create("sc") {
             dimension = "package"
-            versionCode = 1231
-            versionName = "0.11.7-ex_26_8_0"
+            versionCode = 1233
+            versionName = "0.11.9-ex_26_8_0"
             isDefault = true
         }
         // SC variants for different release tracks. Cannot do actual release types for those since fdroid build tools always want `release` builds.
